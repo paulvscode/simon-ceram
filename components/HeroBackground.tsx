@@ -9,7 +9,7 @@ export default function HeroBackground() {
     <div className="fixed inset-0 z-0" aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="https://picsum.photos/seed/atelier-hero/1920/1080"
+        src="/images/hero.jpg"
         alt=""
         className="h-full w-full object-cover"
       />
