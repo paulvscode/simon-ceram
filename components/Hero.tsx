@@ -1,6 +1,6 @@
 export default function Hero() {
   return (
-    <section id="atelier" className="grid-container flex min-h-screen items-center py-16">
+    <section className="grid-container flex min-h-screen items-center py-16">
       <div className="grid-matrix">
         <p className="font-serif text-3xl italic leading-snug tracking-wide text-ink md:col-span-7 md:text-4xl lg:text-5xl">
           La forme suit la lenteur. Chaque pièce naît d&rsquo;un même geste,

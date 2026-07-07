@@ -2,7 +2,7 @@ import CartWidget from "./CartWidget";
 
 const LINKS = [
   { label: "Shop", href: "/shop" },
-  { label: "Atelier", href: "/#atelier" },
+  { label: "Atelier", href: "/atelier" },
   { label: "Contact", href: "/#contact" },
 ];
 
