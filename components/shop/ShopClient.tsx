@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import type { Product } from "@/lib/products";
+import type { Keyword } from "@/lib/keywords";
 
 type Availability = "all" | "available" | "sold";
 type Sort = "newest" | "price-asc" | "price-desc";
@@ -11,9 +12,16 @@ const labelClass = "font-sans text-[11px] uppercase tracking-widest text-ink/50"
 const inputClass =
   "mt-2 w-full border-0 border-b border-ink/20 bg-transparent py-2 font-serif text-base text-ink outline-none focus:border-ink";
 
-export default function ShopClient({ initialProducts }: { initialProducts: Product[] }) {
+export default function ShopClient({
+  initialProducts,
+  keywords,
+}: {
+  initialProducts: Product[];
+  keywords: Keyword[];
+}) {
   const [availability, setAvailability] = useState<Availability>("all");
   const [collection, setCollection] = useState("all");
+  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [sort, setSort] = useState<Sort>("newest");
@@ -24,6 +32,12 @@ export default function ShopClient({ initialProducts }: { initialProducts: Produ
     [initialProducts]
   );
 
+  function toggleKeyword(id: string) {
+    setSelectedKeywords((prev) =>
+      prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]
+    );
+  }
+
   const products = useMemo(() => {
     const min = minPrice ? Number(minPrice) * 100 : null;
     const max = maxPrice ? Number(maxPrice) * 100 : null;
@@ -32,6 +46,11 @@ export default function ShopClient({ initialProducts }: { initialProducts: Produ
       if (availability === "available" && p.sold) return false;
       if (availability === "sold" && !p.sold) return false;
       if (collection !== "all" && p.collection !== collection) return false;
+      if (
+        selectedKeywords.length > 0 &&
+        !p.keywords.some((k) => selectedKeywords.includes(k))
+      )
+        return false;
       if (min !== null && p.priceCents < min) return false;
       if (max !== null && p.priceCents > max) return false;
       return true;
@@ -42,7 +61,7 @@ export default function ShopClient({ initialProducts }: { initialProducts: Produ
       if (sort === "price-desc") return b.priceCents - a.priceCents;
       return b.createdAt - a.createdAt;
     });
-  }, [initialProducts, availability, collection, minPrice, maxPrice, sort]);
+  }, [initialProducts, availability, collection, selectedKeywords, minPrice, maxPrice, sort]);
 
   return (
     <section className="grid-container py-16 md:py-24">
@@ -88,6 +107,25 @@ export default function ShopClient({ initialProducts }: { initialProducts: Produ
               </option>
             ))}
           </select>
+
+          {keywords.length > 0 ? (
+            <>
+              <p className={`mt-12 ${labelClass}`}>Mots-clés</p>
+              <div className="mt-4 flex flex-col gap-y-2">
+                {keywords.map((keyword) => (
+                  <label key={keyword.id} className="flex items-center gap-4 font-sans text-sm">
+                    <input
+                      type="checkbox"
+                      className="accent-ink"
+                      checked={selectedKeywords.includes(keyword.id)}
+                      onChange={() => toggleKeyword(keyword.id)}
+                    />
+                    {keyword.label}
+                  </label>
+                ))}
+              </div>
+            </>
+          ) : null}
 
           <p className={`mt-12 ${labelClass}`}>Prix (€)</p>
           <div className="mt-4 flex items-center gap-4">

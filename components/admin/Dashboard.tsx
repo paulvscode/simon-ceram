@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/products";
 import type { Order } from "@/lib/orders";
 import type { ContactMessage } from "@/lib/contactMessages";
+import type { Keyword } from "@/lib/keywords";
 import { formatEuros } from "@/lib/format";
+import KeywordManager from "./KeywordManager";
+import ProductTagEditor from "./ProductTagEditor";
 
 const inputClass =
   "mt-2 w-full border-0 border-b border-ink/20 bg-transparent py-2 font-serif text-lg text-ink outline-none focus:border-ink";
@@ -33,6 +36,9 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
 
+  const [keywords, setKeywords] = useState<Keyword[]>([]);
+  const [keywordsLoading, setKeywordsLoading] = useState(true);
+
   useEffect(() => {
     fetch("/api/orders")
       .then((res) => res.json())
@@ -46,6 +52,13 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
       .then(({ messages }: { messages: ContactMessage[] }) => {
         setMessages(messages ?? []);
         setMessagesLoading(false);
+      });
+
+    fetch("/api/keywords")
+      .then((res) => res.json())
+      .then(({ keywords }: { keywords: Keyword[] }) => {
+        setKeywords(keywords ?? []);
+        setKeywordsLoading(false);
       });
   }, []);
 
@@ -95,6 +108,54 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
     setShippingId(null);
     if (res.ok) {
       setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: "shipped" } : o)));
+    }
+  }
+
+  async function handleCreateKeyword(label: string) {
+    const res = await fetch("/api/keywords", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label }),
+    });
+    if (res.ok) {
+      const { keyword } = await res.json();
+      setKeywords((prev) => [...prev, keyword].sort((a, b) => a.label.localeCompare(b.label, "fr")));
+    }
+  }
+
+  async function handleRenameKeyword(id: string, label: string) {
+    const res = await fetch(`/api/keywords/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label }),
+    });
+    if (res.ok) {
+      setKeywords((prev) =>
+        prev
+          .map((k) => (k.id === id ? { ...k, label: label.trim() } : k))
+          .sort((a, b) => a.label.localeCompare(b.label, "fr"))
+      );
+    }
+  }
+
+  async function handleDeleteKeyword(id: string) {
+    const res = await fetch(`/api/keywords/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setKeywords((prev) => prev.filter((k) => k.id !== id));
+      setProducts((prev) => prev.map((p) => ({ ...p, keywords: p.keywords.filter((k) => k !== id) })));
+    }
+  }
+
+  async function handleUpdateProductKeywords(productId: string, keywordIds: string[]) {
+    const res = await fetch(`/api/products/${productId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keywords: keywordIds }),
+    });
+    if (res.ok) {
+      setProducts((prev) =>
+        prev.map((p) => (p.id === productId ? { ...p, keywords: keywordIds } : p))
+      );
     }
   }
 
@@ -208,6 +269,11 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
                     {product.collection ? ` — ${product.collection}` : ""}
                   </p>
                   <p className="mt-2 font-serif text-base">{formatEuros(product.priceCents)}</p>
+                  <ProductTagEditor
+                    productKeywordIds={product.keywords}
+                    allKeywords={keywords}
+                    onChange={(ids) => handleUpdateProductKeywords(product.id, ids)}
+                  />
                 </div>
                 <button
                   onClick={() => handleDelete(product.id)}
@@ -226,45 +292,88 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
       </div>
 
       <div className="grid-matrix mt-16 md:mt-24">
+        <div className="md:col-span-4">
+          <KeywordManager
+            keywords={keywords}
+            loading={keywordsLoading}
+            onCreate={handleCreateKeyword}
+            onRename={handleRenameKeyword}
+            onDelete={handleDeleteKeyword}
+          />
+        </div>
+      </div>
+
+      <div className="grid-matrix mt-16 md:mt-24">
         <div className="md:col-span-12">
           <h2 className={labelClass}>
-            Commandes {ordersLoading ? "" : `(${orders.length})`}
+            Commandes en cours{" "}
+            {ordersLoading ? "" : `(${orders.filter((o) => o.status === "paid").length})`}
           </h2>
 
           <ul className="mt-8 flex flex-col gap-y-8">
-            {orders.map((order) => (
-              <li key={order.id} className="border-b border-ink/10 pb-8">
-                <div className="flex flex-wrap items-start justify-between gap-8">
-                  <div>
-                    <p className="font-serif text-lg">
-                      {order.items.map((i) => i.title).join(", ")}
-                    </p>
-                    <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
-                      {order.customerName || order.customerEmail} —{" "}
-                      {new Date(order.createdAt).toLocaleDateString("fr-FR")}
-                    </p>
-                    <p className="mt-2 font-sans text-sm text-ink/70">{order.shippingAddress}</p>
-                    <p className="mt-2 font-serif text-base">{formatEuros(order.totalCents)}</p>
+            {orders
+              .filter((order) => order.status === "paid")
+              .map((order) => (
+                <li key={order.id} className="border-b border-ink/10 pb-8">
+                  <div className="flex flex-wrap items-start justify-between gap-8">
+                    <div>
+                      <p className="font-serif text-lg">
+                        {order.items.map((i) => i.title).join(", ")}
+                      </p>
+                      <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
+                        {order.customerName || order.customerEmail} —{" "}
+                        {new Date(order.createdAt).toLocaleDateString("fr-FR")}
+                      </p>
+                      <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/40">
+                        Expédier vers : {order.shippingZone === "FR" ? "France" : "Belgique"}
+                      </p>
+                      <p className="mt-2 font-sans text-sm text-ink/70">{order.shippingAddress}</p>
+                      <p className="mt-2 font-serif text-base">{formatEuros(order.totalCents)}</p>
+                    </div>
+                    <button
+                      onClick={() => handleMarkShipped(order.id)}
+                      disabled={shippingId === order.id}
+                      className="shrink-0 font-sans text-[11px] uppercase tracking-widest text-ink underline underline-offset-4 disabled:text-ink/40"
+                    >
+                      {shippingId === order.id ? "…" : "Marquer comme expédiée"}
+                    </button>
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-4">
-                    <span className="font-sans text-[11px] uppercase tracking-widest text-ink/40">
-                      {order.status === "shipped" ? "Expédiée" : "Payée"}
-                    </span>
-                    {order.status === "paid" ? (
-                      <button
-                        onClick={() => handleMarkShipped(order.id)}
-                        disabled={shippingId === order.id}
-                        className="font-sans text-[11px] uppercase tracking-widest text-ink underline underline-offset-4 disabled:text-ink/40"
-                      >
-                        {shippingId === order.id ? "…" : "Marquer comme expédiée"}
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              </li>
-            ))}
-            {!ordersLoading && orders.length === 0 ? (
-              <li className={labelClass}>Aucune commande pour le moment.</li>
+                </li>
+              ))}
+            {!ordersLoading && orders.filter((o) => o.status === "paid").length === 0 ? (
+              <li className={labelClass}>Aucune commande en attente d&rsquo;expédition.</li>
+            ) : null}
+          </ul>
+        </div>
+      </div>
+
+      <div className="grid-matrix mt-16 md:mt-24">
+        <div className="md:col-span-12">
+          <h2 className={labelClass}>
+            Commandes expédiées{" "}
+            {ordersLoading ? "" : `(${orders.filter((o) => o.status === "shipped").length})`}
+          </h2>
+
+          <ul className="mt-8 flex flex-col gap-y-8">
+            {orders
+              .filter((order) => order.status === "shipped")
+              .map((order) => (
+                <li key={order.id} className="border-b border-ink/10 pb-8">
+                  <p className="font-serif text-lg">
+                    {order.items.map((i) => i.title).join(", ")}
+                  </p>
+                  <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
+                    {order.customerName || order.customerEmail} —{" "}
+                    {new Date(order.createdAt).toLocaleDateString("fr-FR")}
+                  </p>
+                  <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/40">
+                    Expédiée vers : {order.shippingZone === "FR" ? "France" : "Belgique"}
+                  </p>
+                  <p className="mt-2 font-sans text-sm text-ink/70">{order.shippingAddress}</p>
+                </li>
+              ))}
+            {!ordersLoading && orders.filter((o) => o.status === "shipped").length === 0 ? (
+              <li className={labelClass}>Aucune commande expédiée pour le moment.</li>
             ) : null}
           </ul>
         </div>

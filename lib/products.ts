@@ -12,6 +12,7 @@ export type Product = {
   priceCents: number;
   sold: boolean;
   collection: string;
+  keywords: string[];
   createdAt: number;
 };
 
@@ -36,7 +37,7 @@ async function writeAll(products: Product[]): Promise<void> {
   });
 }
 
-// Fills defaults for records written before priceCents/sold/collection existed.
+// Fills defaults for records written before priceCents/sold/collection/keywords existed.
 function normalize(raw: Partial<Product>[]): Product[] {
   return raw.map((p) => ({
     id: p.id!,
@@ -47,6 +48,7 @@ function normalize(raw: Partial<Product>[]): Product[] {
     priceCents: p.priceCents ?? 0,
     sold: p.sold ?? false,
     collection: p.collection ?? "",
+    keywords: p.keywords ?? [],
     createdAt: p.createdAt ?? Date.now(),
   }));
 }
@@ -96,6 +98,7 @@ export async function addProduct(input: NewProduct): Promise<Product> {
     priceCents: Math.max(0, Math.round(input.priceCents)),
     sold: false,
     collection: input.collection.trim(),
+    keywords: [],
     createdAt: Date.now(),
   };
   products.push(product);
@@ -113,5 +116,18 @@ export async function markProductsSold(ids: string[]): Promise<void> {
   const idSet = new Set(ids);
   await writeAll(
     products.map((p) => (idSet.has(p.id) ? { ...p, sold: true } : p))
+  );
+}
+
+export async function setProductKeywords(id: string, keywords: string[]): Promise<void> {
+  const products = await readAll();
+  await writeAll(products.map((p) => (p.id === id ? { ...p, keywords } : p)));
+}
+
+// Cascade cleanup when a keyword is deleted from the master list.
+export async function removeKeywordFromAllProducts(keywordId: string): Promise<void> {
+  const products = await readAll();
+  await writeAll(
+    products.map((p) => ({ ...p, keywords: p.keywords.filter((k) => k !== keywordId) }))
   );
 }
