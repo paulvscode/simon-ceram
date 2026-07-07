@@ -10,6 +10,9 @@ type CartContextValue = {
   removeFromCart: (productId: string) => void;
   isInCart: (productId: string) => boolean;
   clearCart: () => void;
+  isDrawerOpen: boolean;
+  openDrawer: () => void;
+  closeDrawer: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -17,6 +20,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -38,14 +42,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<CartContextValue>(
     () => ({
       cart,
-      addToCart: (productId) =>
-        setCart((prev) => (prev.includes(productId) ? prev : [...prev, productId])),
-      removeFromCart: (productId) =>
-        setCart((prev) => prev.filter((id) => id !== productId)),
+      addToCart: (productId) => {
+        setCart((prev) => (prev.includes(productId) ? prev : [...prev, productId]));
+        setDrawerOpen(true);
+      },
+      removeFromCart: (productId) => {
+        setCart((prev) => prev.filter((id) => id !== productId));
+        setDrawerOpen(true);
+      },
       isInCart: (productId) => cart.includes(productId),
       clearCart: () => setCart([]),
+      isDrawerOpen,
+      openDrawer: () => setDrawerOpen(true),
+      closeDrawer: () => setDrawerOpen(false),
     }),
-    [cart]
+    [cart, isDrawerOpen]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { title, subtitle, description, imageUrl, priceEuros } = body ?? {};
+  const { title, subtitle, description, imageUrl, priceEuros, collection } = body ?? {};
 
   if (!title || typeof title !== "string" || !title.trim()) {
     return NextResponse.json({ error: "Le titre est requis." }, { status: 400 });
@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
     description: description ?? "",
     imageUrl: imageUrl ?? "",
     priceCents,
+    collection: collection ?? "",
   });
 
   return NextResponse.json({ product }, { status: 201 });

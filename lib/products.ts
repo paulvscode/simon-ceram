@@ -11,6 +11,7 @@ export type Product = {
   imageUrl: string;
   priceCents: number;
   sold: boolean;
+  collection: string;
   createdAt: number;
 };
 
@@ -35,7 +36,7 @@ async function writeAll(products: Product[]): Promise<void> {
   });
 }
 
-// Fills defaults for records written before priceCents/sold existed.
+// Fills defaults for records written before priceCents/sold/collection existed.
 function normalize(raw: Partial<Product>[]): Product[] {
   return raw.map((p) => ({
     id: p.id!,
@@ -45,6 +46,7 @@ function normalize(raw: Partial<Product>[]): Product[] {
     imageUrl: p.imageUrl ?? "",
     priceCents: p.priceCents ?? 0,
     sold: p.sold ?? false,
+    collection: p.collection ?? "",
     createdAt: p.createdAt ?? Date.now(),
   }));
 }
@@ -80,6 +82,7 @@ export type NewProduct = {
   description: string;
   imageUrl: string;
   priceCents: number;
+  collection: string;
 };
 
 export async function addProduct(input: NewProduct): Promise<Product> {
@@ -92,6 +95,7 @@ export async function addProduct(input: NewProduct): Promise<Product> {
     imageUrl: input.imageUrl.trim(),
     priceCents: Math.max(0, Math.round(input.priceCents)),
     sold: false,
+    collection: input.collection.trim(),
     createdAt: Date.now(),
   };
   products.push(product);

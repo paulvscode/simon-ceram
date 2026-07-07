@@ -13,9 +13,16 @@ const inputClass =
 
 export default function ShopClient({ initialProducts }: { initialProducts: Product[] }) {
   const [availability, setAvailability] = useState<Availability>("all");
+  const [collection, setCollection] = useState("all");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [sort, setSort] = useState<Sort>("newest");
+
+  const collections = useMemo(
+    () =>
+      Array.from(new Set(initialProducts.map((p) => p.collection).filter(Boolean))).sort(),
+    [initialProducts]
+  );
 
   const products = useMemo(() => {
     const min = minPrice ? Number(minPrice) * 100 : null;
@@ -24,6 +31,7 @@ export default function ShopClient({ initialProducts }: { initialProducts: Produ
     const filtered = initialProducts.filter((p) => {
       if (availability === "available" && p.sold) return false;
       if (availability === "sold" && !p.sold) return false;
+      if (collection !== "all" && p.collection !== collection) return false;
       if (min !== null && p.priceCents < min) return false;
       if (max !== null && p.priceCents > max) return false;
       return true;
@@ -34,7 +42,7 @@ export default function ShopClient({ initialProducts }: { initialProducts: Produ
       if (sort === "price-desc") return b.priceCents - a.priceCents;
       return b.createdAt - a.createdAt;
     });
-  }, [initialProducts, availability, minPrice, maxPrice, sort]);
+  }, [initialProducts, availability, collection, minPrice, maxPrice, sort]);
 
   return (
     <section className="grid-container py-16 md:py-24">
@@ -66,6 +74,20 @@ export default function ShopClient({ initialProducts }: { initialProducts: Produ
               </label>
             ))}
           </div>
+
+          <p className={`mt-12 ${labelClass}`}>Collection</p>
+          <select
+            value={collection}
+            onChange={(e) => setCollection(e.target.value)}
+            className={`${inputClass} cursor-pointer`}
+          >
+            <option value="all">Toutes les collections</option>
+            {collections.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
 
           <p className={`mt-12 ${labelClass}`}>Prix (€)</p>
           <div className="mt-4 flex items-center gap-4">

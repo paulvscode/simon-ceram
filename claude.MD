@@ -19,7 +19,7 @@ You are an expert design-engineer trained in the objective corporate design phil
 The homepage (`/`) is editorial only — a fixed hero statement and philosophy quote, no product listing. All dynamic product content (added/removed via the admin panel) lives on its own route, `/shop`, as a uniform card grid rather than the asymmetric homepage treatment this project used earlier.
 
 `/shop` splits the 12-column matrix into two fixed regions at `md` and up:
-*   **Filter sidebar:** columns 1–3 (`col-span-3`). Availability toggle, price min/max, sort selector. Same input styling (underlined, serif value, tracked-out sans label) as the admin dashboard forms.
+*   **Filter sidebar:** columns 1–3 (`col-span-3`). Availability toggle, collection selector, price min/max, sort selector. Same input styling (underlined, serif value, tracked-out sans label) as the admin dashboard forms.
 *   **Product grid:** columns 4–12 (`col-start-4 col-span-9`). Cards laid out in a uniform, evenly-gapped grid (2-up tablet, 3-up desktop) — no offset/whitespace patterning. Every card is the same shape; density and scannability matter more than the exhibition-catalog asymmetry used on the homepage hero.
 
 ### Responsive Collapse Rule

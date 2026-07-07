@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { useCartProducts } from "@/lib/use-cart-products";
 import { formatEuros } from "@/lib/format";
 
 export default function CartWidget() {
-  const [open, setOpen] = useState(false);
-  const { cart, removeFromCart } = useCart();
+  const { cart, removeFromCart, isDrawerOpen, openDrawer, closeDrawer } = useCart();
   const { items, loading } = useCartProducts();
 
   const available = items.filter((p) => !p.sold);
@@ -16,24 +14,24 @@ export default function CartWidget() {
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        onClick={openDrawer}
         className="font-sans text-[11px] uppercase tracking-widest text-ink/70 transition-colors duration-400 hover:text-ink"
       >
         Panier{cart.length > 0 ? ` (${cart.length})` : ""}
       </button>
 
-      {open ? (
+      {isDrawerOpen ? (
         <div className="fixed inset-0 z-[200]">
           <button
             aria-label="Fermer le panier"
-            onClick={() => setOpen(false)}
+            onClick={closeDrawer}
             className="absolute inset-0 bg-ink/30"
           />
           <aside className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col overflow-y-auto border-l border-ink/10 bg-canvas p-8">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-xl tracking-wide">Panier</h2>
               <button
-                onClick={() => setOpen(false)}
+                onClick={closeDrawer}
                 className="font-sans text-[11px] uppercase tracking-widest text-ink/50 underline underline-offset-4 hover:text-ink"
               >
                 Fermer

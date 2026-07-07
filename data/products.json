@@ -7,6 +7,7 @@
     "imageUrl": "https://picsum.photos/seed/vessel-12/1200/1500",
     "priceCents": 18000,
     "sold": false,
+    "collection": "Grès",
     "createdAt": 1700000000000
   },
   {
@@ -17,6 +18,7 @@
     "imageUrl": "https://picsum.photos/seed/vessel-14/1200/1500",
     "priceCents": 22000,
     "sold": false,
+    "collection": "Porcelaine",
     "createdAt": 1700000100000
   },
   {
@@ -27,6 +29,7 @@
     "imageUrl": "https://picsum.photos/seed/ash-glaze/1200/1500",
     "priceCents": 15000,
     "sold": true,
+    "collection": "Études",
     "createdAt": 1700000200000
   },
   {
@@ -37,6 +40,7 @@
     "imageUrl": "https://picsum.photos/seed/vessel-19/1200/1500",
     "priceCents": 12000,
     "sold": false,
+    "collection": "Grès",
     "createdAt": 1700000300000
   },
   {
@@ -47,6 +51,7 @@
     "imageUrl": "https://picsum.photos/seed/paired-forms/1200/1500",
     "priceCents": 32000,
     "sold": false,
+    "collection": "Porcelaine",
     "createdAt": 1700000400000
   }
 ]

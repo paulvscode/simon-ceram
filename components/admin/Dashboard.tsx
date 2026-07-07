@@ -19,6 +19,7 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
     description: "",
     imageUrl: "",
     priceEuros: "",
+    collection: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -58,7 +59,14 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
 
     const { product } = await res.json();
     setProducts((prev) => [...prev, product]);
-    setForm({ title: "", subtitle: "", description: "", imageUrl: "", priceEuros: "" });
+    setForm({
+      title: "",
+      subtitle: "",
+      description: "",
+      imageUrl: "",
+      priceEuros: "",
+      collection: "",
+    });
   }
 
   async function handleDelete(id: string) {
@@ -131,6 +139,14 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
             placeholder="180.00"
           />
 
+          <label className={`mt-8 block ${labelClass}`}>Collection</label>
+          <input
+            value={form.collection}
+            onChange={(e) => setForm({ ...form, collection: e.target.value })}
+            className={inputClass}
+            placeholder="Grès"
+          />
+
           <label className={`mt-8 block ${labelClass}`}>Description</label>
           <textarea
             value={form.description}
@@ -178,6 +194,7 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
                   </p>
                   <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
                     {product.subtitle}
+                    {product.collection ? ` — ${product.collection}` : ""}
                   </p>
                   <p className="mt-2 font-serif text-base">{formatEuros(product.priceCents)}</p>
                 </div>
