@@ -1,9 +1,9 @@
 import CartLink from "./CartLink";
 
 const LINKS = [
-  { label: "Pièces", href: "#pieces" },
-  { label: "Atelier", href: "#atelier" },
-  { label: "Contact", href: "#contact" },
+  { label: "Shop", href: "/shop" },
+  { label: "Atelier", href: "/#atelier" },
+  { label: "Contact", href: "/#contact" },
 ];
 
 export default function Nav() {

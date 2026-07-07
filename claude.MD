@@ -14,22 +14,19 @@ You are an expert design-engineer trained in the objective corporate design phil
 
 ---
 
-## 2. Dynamic Asymmetry Rules (The "Louveau" Pattern Matrix)
+## 2. Shop Grid & Filter Sidebar
 
-Because this website displays dynamic content (products/articles added via an admin panel) inside an organic, asymmetrical layout, you must not use a generic row-by-row card layout. Instead, you will map array elements to a structural matrix.
+The homepage (`/`) is editorial only — a fixed hero statement and philosophy quote, no product listing. All dynamic product content (added/removed via the admin panel) lives on its own route, `/shop`, as a uniform card grid rather than the asymmetric homepage treatment this project used earlier.
 
-When rendering the dynamic array of products, calculate the column spans and offsets mathematically using the item's array index on a 3-step cycle (`index % 3`):
-*   **Pattern A (Index 0, 3, 6...):** Span 5 columns, offset by 1 column (Columns 2 to 6). Massive whitespace on the right.
-*   **Pattern B (Index 1, 4, 7...):** Span 4 columns, offset by 7 columns (Columns 8 to 11). Massive whitespace on the left.
-*   **Pattern C (Index 2, 5, 8...):** Center layout. Span 6 columns, offset by 3 columns (Columns 4 to 9).
-
-Every dynamically added item must gracefully inherit its structural pattern rule without breaking the 12-column matrix bounds.
+`/shop` splits the 12-column matrix into two fixed regions at `md` and up:
+*   **Filter sidebar:** columns 1–3 (`col-span-3`). Availability toggle, price min/max, sort selector. Same input styling (underlined, serif value, tracked-out sans label) as the admin dashboard forms.
+*   **Product grid:** columns 4–12 (`col-start-4 col-span-9`). Cards laid out in a uniform, evenly-gapped grid (2-up tablet, 3-up desktop) — no offset/whitespace patterning. Every card is the same shape; density and scannability matter more than the exhibition-catalog asymmetry used on the homepage hero.
 
 ### Responsive Collapse Rule
-The 12-column matrix and its offset patterns apply at desktop width (`md` breakpoint and up, ≥768px) only. Below that breakpoint:
-*   The grid collapses to a **single full-width column** (`grid-cols-1`).
-*   All Pattern A/B/C offsets and spans are disabled — every item spans the full column with no offset.
-*   The 8px baseline rhythm and fixed gutters (reduced to `16px` / `gap-4` on mobile) still apply; only the multi-column asymmetry is suspended.
+Below `md` (768px):
+*   The sidebar stacks above the grid, both at full width (`grid-cols-1`).
+*   The product grid itself still keeps its own internal columns where they fit (2-up), collapsing to 1-up only at the narrowest widths.
+*   The 8px baseline rhythm and fixed gutters (reduced to `16px` / `gap-4` on mobile) still apply throughout.
 
 ---
 

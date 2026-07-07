@@ -4,22 +4,12 @@ import type { Product } from "@/lib/products";
 import { useCart } from "@/lib/cart-context";
 import { formatEuros } from "@/lib/format";
 
-const PATTERN = [
-  "md:col-start-2 md:col-span-5", // Pattern A — whitespace right
-  "md:col-start-8 md:col-span-4", // Pattern B — whitespace left
-  "md:col-start-4 md:col-span-6", // Pattern C — centered
-] as const;
-
-export function patternForIndex(index: number): string {
-  return PATTERN[index % 3];
-}
-
-export default function ProductCard({ product, index }: { product: Product; index: number }) {
+export default function ProductCard({ product }: { product: Product }) {
   const { isInCart, addToCart, removeFromCart } = useCart();
   const inCart = isInCart(product.id);
 
   return (
-    <article className={patternForIndex(index)}>
+    <article>
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-ink/5">
         {product.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -41,7 +31,7 @@ export default function ProductCard({ product, index }: { product: Product; inde
         {product.subtitle}
       </p>
       {product.description ? (
-        <p className="mt-4 max-w-md font-sans text-sm leading-relaxed text-ink/70">
+        <p className="mt-4 font-sans text-sm leading-relaxed text-ink/70">
           {product.description}
         </p>
       ) : null}

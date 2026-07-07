@@ -77,7 +77,7 @@ export default function PanierPage() {
           <div className="grid-matrix mt-16">
             <p className="font-sans text-[11px] uppercase tracking-widest text-ink/40 md:col-span-6">
               Votre panier est vide.{" "}
-              <a href="/#pieces" className="underline underline-offset-4">
+              <a href="/shop" className="underline underline-offset-4">
                 Voir les pièces
               </a>
             </p>
