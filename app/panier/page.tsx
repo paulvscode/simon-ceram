@@ -136,6 +136,13 @@ export default function PanierPage() {
                 </label>
               </div>
 
+              <p className="mt-4 font-sans text-xs text-ink/50">
+                Livraison dans un autre pays ?{" "}
+                <a href="/contact" className="underline underline-offset-4 hover:text-ink">
+                  Contactez-nous
+                </a>
+              </p>
+
               <div className="mt-8 border-t border-ink/10 pt-8">
                 <div className="flex items-center justify-between font-sans text-sm text-ink/70">
                   <span>Sous-total</span>
