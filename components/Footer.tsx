@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer id="contact" className="grid-container py-16">
+    <footer id="contact" className="grid-container bg-canvas py-16">
       <div className="grid-matrix items-end font-sans text-[11px] uppercase tracking-widest text-ink/40">
         <div className="md:col-span-4">
           <p>Atelier Simon</p>

@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
+import { list, put } from "@vercel/blob";
 
 export type Product = {
   id: string;
@@ -11,15 +12,39 @@ export type Product = {
   createdAt: number;
 };
 
-const DATA_FILE = path.join(process.cwd(), "data", "products.json");
+const BLOB_PATHNAME = "products.json";
+const SEED_FILE = path.join(process.cwd(), "data", "products.json");
 
-async function readAll(): Promise<Product[]> {
-  const raw = await fs.readFile(DATA_FILE, "utf-8");
-  return JSON.parse(raw) as Product[];
+async function findBlobUrl(): Promise<string | null> {
+  const { blobs } = await list({ prefix: BLOB_PATHNAME, limit: 1 });
+  return blobs.find((b) => b.pathname === BLOB_PATHNAME)?.url ?? null;
 }
 
 async function writeAll(products: Product[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(products, null, 2), "utf-8");
+  // cacheControlMaxAge: 0 — this blob is overwritten on every admin action and
+  // must read back immediately; Vercel's CDN would otherwise serve a stale
+  // version for its default cache window after each overwrite.
+  await put(BLOB_PATHNAME, JSON.stringify(products, null, 2), {
+    access: "public",
+    contentType: "application/json",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    cacheControlMaxAge: 0,
+  });
+}
+
+async function readAll(): Promise<Product[]> {
+  const url = await findBlobUrl();
+  if (url) {
+    const res = await fetch(url, { cache: "no-store" });
+    return (await res.json()) as Product[];
+  }
+
+  // First run: no blob yet — seed it from the bundled seed file.
+  const seedRaw = await fs.readFile(SEED_FILE, "utf-8");
+  const seed = JSON.parse(seedRaw) as Product[];
+  await writeAll(seed);
+  return seed;
 }
 
 export async function getProducts(): Promise<Product[]> {

@@ -9,7 +9,7 @@ import ProductCard from "./ProductCard";
 export default function ShowcaseGrid({ products }: { products: Product[] }) {
   if (products.length === 0) {
     return (
-      <section id="pieces" className="grid-container py-32">
+      <section id="pieces" className="grid-container bg-canvas py-32">
         <p className="font-sans text-[11px] uppercase tracking-widest text-ink/40">
           Aucune pièce exposée pour le moment.
         </p>
@@ -20,7 +20,7 @@ export default function ShowcaseGrid({ products }: { products: Product[] }) {
   return (
     <section
       id="pieces"
-      className="grid-container flex flex-col gap-y-32 py-16 md:gap-y-48 md:py-32"
+      className="grid-container flex flex-col gap-y-32 bg-canvas py-16 md:gap-y-48 md:py-32"
     >
       {products.map((product, index) => (
         <div key={product.id} className="grid-matrix">
