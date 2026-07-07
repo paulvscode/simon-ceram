@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import GridOverlay from "@/components/GridOverlay";
+import { CartProvider } from "@/lib/cart-context";
 import "./globals.css";
 
 const serif = Fraunces({
@@ -27,8 +28,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" className={`${serif.variable} ${sans.variable}`}>
       <body className="font-sans">
-        {children}
-        <GridOverlay />
+        <CartProvider>
+          {children}
+          <GridOverlay />
+        </CartProvider>
       </body>
     </html>
   );

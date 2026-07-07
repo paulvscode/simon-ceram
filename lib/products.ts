@@ -9,6 +9,8 @@ export type Product = {
   subtitle: string;
   description: string;
   imageUrl: string;
+  priceCents: number;
+  sold: boolean;
   createdAt: number;
 };
 
@@ -33,16 +35,30 @@ async function writeAll(products: Product[]): Promise<void> {
   });
 }
 
+// Fills defaults for records written before priceCents/sold existed.
+function normalize(raw: Partial<Product>[]): Product[] {
+  return raw.map((p) => ({
+    id: p.id!,
+    title: p.title ?? "",
+    subtitle: p.subtitle ?? "",
+    description: p.description ?? "",
+    imageUrl: p.imageUrl ?? "",
+    priceCents: p.priceCents ?? 0,
+    sold: p.sold ?? false,
+    createdAt: p.createdAt ?? Date.now(),
+  }));
+}
+
 async function readAll(): Promise<Product[]> {
   const url = await findBlobUrl();
   if (url) {
     const res = await fetch(url, { cache: "no-store" });
-    return (await res.json()) as Product[];
+    return normalize((await res.json()) as Partial<Product>[]);
   }
 
   // First run: no blob yet — seed it from the bundled seed file.
   const seedRaw = await fs.readFile(SEED_FILE, "utf-8");
-  const seed = JSON.parse(seedRaw) as Product[];
+  const seed = normalize(JSON.parse(seedRaw) as Partial<Product>[]);
   await writeAll(seed);
   return seed;
 }
@@ -52,11 +68,18 @@ export async function getProducts(): Promise<Product[]> {
   return products.sort((a, b) => a.createdAt - b.createdAt);
 }
 
+export async function getProductsByIds(ids: string[]): Promise<Product[]> {
+  const products = await readAll();
+  const idSet = new Set(ids);
+  return products.filter((p) => idSet.has(p.id));
+}
+
 export type NewProduct = {
   title: string;
   subtitle: string;
   description: string;
   imageUrl: string;
+  priceCents: number;
 };
 
 export async function addProduct(input: NewProduct): Promise<Product> {
@@ -67,6 +90,8 @@ export async function addProduct(input: NewProduct): Promise<Product> {
     subtitle: input.subtitle.trim(),
     description: input.description.trim(),
     imageUrl: input.imageUrl.trim(),
+    priceCents: Math.max(0, Math.round(input.priceCents)),
+    sold: false,
     createdAt: Date.now(),
   };
   products.push(product);
@@ -77,4 +102,12 @@ export async function addProduct(input: NewProduct): Promise<Product> {
 export async function deleteProduct(id: string): Promise<void> {
   const products = await readAll();
   await writeAll(products.filter((p) => p.id !== id));
+}
+
+export async function markProductsSold(ids: string[]): Promise<void> {
+  const products = await readAll();
+  const idSet = new Set(ids);
+  await writeAll(
+    products.map((p) => (idSet.has(p.id) ? { ...p, sold: true } : p))
+  );
 }

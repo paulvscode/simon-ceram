@@ -15,10 +15,15 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { title, subtitle, description, imageUrl } = body ?? {};
+  const { title, subtitle, description, imageUrl, priceEuros } = body ?? {};
 
   if (!title || typeof title !== "string" || !title.trim()) {
     return NextResponse.json({ error: "Le titre est requis." }, { status: 400 });
+  }
+
+  const priceCents = Math.round(Number(priceEuros) * 100);
+  if (!Number.isFinite(priceCents) || priceCents < 0) {
+    return NextResponse.json({ error: "Le prix doit être un nombre positif." }, { status: 400 });
   }
 
   const product = await addProduct({
@@ -26,6 +31,7 @@ export async function POST(request: NextRequest) {
     subtitle: subtitle ?? "",
     description: description ?? "",
     imageUrl: imageUrl ?? "",
+    priceCents,
   });
 
   return NextResponse.json({ product }, { status: 201 });

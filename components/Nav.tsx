@@ -1,3 +1,5 @@
+import CartLink from "./CartLink";
+
 const LINKS = [
   { label: "Pièces", href: "#pieces" },
   { label: "Atelier", href: "#atelier" },
@@ -22,6 +24,9 @@ export default function Nav() {
               </a>
             </li>
           ))}
+          <li>
+            <CartLink />
+          </li>
         </ul>
       </nav>
     </header>
