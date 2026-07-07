@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { useCart } from "@/lib/cart-context";
+import { useCartProducts } from "@/lib/use-cart-products";
 import { formatEuros } from "@/lib/format";
-import type { Product } from "@/lib/products";
 import type { ShippingZone } from "@/lib/orders";
 
 const FRANCE_SHIPPING_CENTS = Number(
@@ -16,23 +16,12 @@ const INTL_SHIPPING_CENTS = Number(
 );
 
 export default function PanierPage() {
-  const { cart, removeFromCart } = useCart();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { removeFromCart } = useCart();
+  const { items, loading } = useCartProducts();
   const [shippingZone, setShippingZone] = useState<ShippingZone>("FR");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/products")
-      .then((res) => res.json())
-      .then(({ products }: { products: Product[] }) => {
-        setProducts(products);
-        setLoading(false);
-      });
-  }, []);
-
-  const items = products.filter((p) => cart.includes(p.id));
   const unavailable = items.filter((p) => p.sold);
   const available = items.filter((p) => !p.sold);
   const itemsTotalCents = available.reduce((sum, p) => sum + p.priceCents, 0);

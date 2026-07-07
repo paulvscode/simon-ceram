@@ -1,4 +1,4 @@
-import CartLink from "./CartLink";
+import CartWidget from "./CartWidget";
 
 const LINKS = [
   { label: "Shop", href: "/shop" },
@@ -25,7 +25,7 @@ export default function Nav() {
             </li>
           ))}
           <li>
-            <CartLink />
+            <CartWidget />
           </li>
         </ul>
       </nav>
