@@ -1,0 +1,42 @@
+[
+  {
+    "id": "3f8e6b2a-1a2b-4c3d-9e0f-000000000001",
+    "title": "Vessel No. 12",
+    "subtitle": "Stoneware — 2024",
+    "description": "A single wheel-thrown form, unglazed at the foot to let the raw clay speak. Fired in a wood kiln over eighteen hours.",
+    "imageUrl": "https://picsum.photos/seed/vessel-12/1200/1500",
+    "createdAt": 1700000000000
+  },
+  {
+    "id": "3f8e6b2a-1a2b-4c3d-9e0f-000000000002",
+    "title": "Vessel No. 14",
+    "subtitle": "Porcelain — 2024",
+    "description": "Cast from a hand-carved plaster mold, then altered while leather-hard to soften every edge.",
+    "imageUrl": "https://picsum.photos/seed/vessel-14/1200/1500",
+    "createdAt": 1700000100000
+  },
+  {
+    "id": "3f8e6b2a-1a2b-4c3d-9e0f-000000000003",
+    "title": "Study in Ash Glaze",
+    "subtitle": "Stoneware — 2023",
+    "description": "Ash gathered from the studio hearth, sieved and suspended for a glaze that pools where gravity allows.",
+    "imageUrl": "https://picsum.photos/seed/ash-glaze/1200/1500",
+    "createdAt": 1700000200000
+  },
+  {
+    "id": "3f8e6b2a-1a2b-4c3d-9e0f-000000000004",
+    "title": "Vessel No. 19",
+    "subtitle": "Stoneware — 2025",
+    "description": "A quiet, low form. Thrown off the hump, trimmed twice, and left to speak for itself.",
+    "imageUrl": "https://picsum.photos/seed/vessel-19/1200/1500",
+    "createdAt": 1700000300000
+  },
+  {
+    "id": "3f8e6b2a-1a2b-4c3d-9e0f-000000000005",
+    "title": "Paired Forms",
+    "subtitle": "Porcelain — 2025",
+    "description": "Two vessels thrown from the same block of clay, fired together, never separated since.",
+    "imageUrl": "https://picsum.photos/seed/paired-forms/1200/1500",
+    "createdAt": 1700000400000
+  }
+]
