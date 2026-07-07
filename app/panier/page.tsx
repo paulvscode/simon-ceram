@@ -11,7 +11,7 @@ import type { ShippingZone } from "@/lib/orders";
 const FRANCE_SHIPPING_CENTS = Number(
   process.env.NEXT_PUBLIC_SHIPPING_RATE_FRANCE_CENTS ?? 0
 );
-const INTL_SHIPPING_CENTS = Number(
+const BELGIUM_SHIPPING_CENTS = Number(
   process.env.NEXT_PUBLIC_SHIPPING_RATE_INTL_CENTS ?? 0
 );
 
@@ -25,7 +25,7 @@ export default function PanierPage() {
   const unavailable = items.filter((p) => p.sold);
   const available = items.filter((p) => !p.sold);
   const itemsTotalCents = available.reduce((sum, p) => sum + p.priceCents, 0);
-  const shippingCents = shippingZone === "FR" ? FRANCE_SHIPPING_CENTS : INTL_SHIPPING_CENTS;
+  const shippingCents = shippingZone === "FR" ? FRANCE_SHIPPING_CENTS : BELGIUM_SHIPPING_CENTS;
   const totalCents = itemsTotalCents + shippingCents;
 
   async function handleCheckout() {
@@ -112,6 +112,9 @@ export default function PanierPage() {
               <p className="font-sans text-[11px] uppercase tracking-widest text-ink/50">
                 Livraison
               </p>
+              <p className="mt-2 font-sans text-xs text-ink/50">
+                Nous livrons actuellement en France et en Belgique uniquement.
+              </p>
               <div className="mt-4 flex flex-col gap-y-4">
                 <label className="flex items-center gap-4 font-sans text-sm">
                   <input
@@ -126,10 +129,10 @@ export default function PanierPage() {
                   <input
                     type="radio"
                     className="accent-ink"
-                    checked={shippingZone === "INTL"}
-                    onChange={() => setShippingZone("INTL")}
+                    checked={shippingZone === "BE"}
+                    onChange={() => setShippingZone("BE")}
                   />
-                  International — {formatEuros(INTL_SHIPPING_CENTS)}
+                  Belgique — {formatEuros(BELGIUM_SHIPPING_CENTS)}
                 </label>
               </div>
 

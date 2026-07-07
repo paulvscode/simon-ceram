@@ -3,7 +3,7 @@ import CartWidget from "./CartWidget";
 const LINKS = [
   { label: "Shop", href: "/shop" },
   { label: "Atelier", href: "/atelier" },
-  { label: "Contact", href: "/#contact" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export default function Nav() {

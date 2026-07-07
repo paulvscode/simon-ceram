@@ -13,12 +13,14 @@ export default function CartWidget() {
 
   return (
     <>
-      <button
-        onClick={openDrawer}
-        className="font-sans text-[11px] uppercase tracking-widest text-ink/70 transition-colors duration-400 hover:text-ink"
-      >
-        Panier{cart.length > 0 ? ` (${cart.length})` : ""}
-      </button>
+      {cart.length > 0 ? (
+        <button
+          onClick={openDrawer}
+          className="font-sans text-[11px] uppercase tracking-widest text-ink/70 transition-colors duration-400 hover:text-ink"
+        >
+          Panier ({cart.length})
+        </button>
+      ) : null}
 
       {isDrawerOpen ? (
         <div className="fixed inset-0 z-[200]">

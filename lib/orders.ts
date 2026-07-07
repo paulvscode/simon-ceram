@@ -7,7 +7,7 @@ export type OrderItem = {
   priceCents: number;
 };
 
-export type ShippingZone = "FR" | "INTL";
+export type ShippingZone = "FR" | "BE";
 
 export type Order = {
   id: string;

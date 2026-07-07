@@ -1,13 +1,16 @@
 export default function Footer() {
   return (
-    <footer id="contact" className="grid-container bg-canvas py-16">
+    <footer className="grid-container bg-canvas py-16">
       <div className="grid-matrix items-end font-sans text-[11px] uppercase tracking-widest text-ink/40">
         <div className="md:col-span-4">
           <p>Atelier Simon</p>
           <p className="mt-2">12 rue des Tanneurs, Dieulefit</p>
+          <p className="mt-2">Livraison en France et en Belgique</p>
         </div>
         <div className="mt-8 md:col-start-6 md:col-span-3 md:mt-0">
-          <p>Contact</p>
+          <a href="/contact" className="hover:text-ink">
+            Contact
+          </a>
           <p className="mt-2">atelier@simon-ceramique.fr</p>
         </div>
         <div className="mt-8 md:col-start-10 md:col-span-3 md:mt-0 md:text-right">

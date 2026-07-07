@@ -3,13 +3,6 @@ import { getProductsByIds } from "@/lib/products";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import type { ShippingZone } from "@/lib/orders";
 
-// Countries offered under the "International" shipping option. Edit this
-// list to match wherever the atelier is actually willing to ship.
-const INTL_COUNTRIES = [
-  "FR", "BE", "CH", "DE", "ES", "IT", "GB", "IE", "NL", "LU", "PT", "AT",
-  "DK", "SE", "NO", "FI", "PL", "CZ", "US", "CA",
-] as const;
-
 export async function POST(request: NextRequest) {
   if (!isStripeConfigured()) {
     return NextResponse.json(
@@ -27,7 +20,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Le panier est vide." }, { status: 400 });
   }
 
-  const zone: ShippingZone = shippingZone === "INTL" ? "INTL" : "FR";
+  const zone: ShippingZone = shippingZone === "BE" ? "BE" : "FR";
 
   const products = await getProductsByIds(productIds);
   const missingOrSold = productIds.filter(
@@ -62,15 +55,16 @@ export async function POST(request: NextRequest) {
         },
       },
     })),
+    // Delivery is currently limited to France and Belgium only.
     shipping_address_collection: {
-      allowed_countries: zone === "FR" ? ["FR"] : [...INTL_COUNTRIES],
+      allowed_countries: zone === "FR" ? ["FR"] : ["BE"],
     },
     shipping_options: [
       {
         shipping_rate_data: {
           type: "fixed_amount",
           fixed_amount: { amount: shippingCents, currency: "eur" },
-          display_name: zone === "FR" ? "Livraison France" : "Livraison internationale",
+          display_name: zone === "FR" ? "Livraison France" : "Livraison Belgique",
         },
       },
     ],

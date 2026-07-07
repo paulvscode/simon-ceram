@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/products";
 import type { Order } from "@/lib/orders";
+import type { ContactMessage } from "@/lib/contactMessages";
 import { formatEuros } from "@/lib/format";
 
 const inputClass =
@@ -29,12 +30,22 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [shippingId, setShippingId] = useState<string | null>(null);
 
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+
   useEffect(() => {
     fetch("/api/orders")
       .then((res) => res.json())
       .then(({ orders }: { orders: Order[] }) => {
         setOrders(orders ?? []);
         setOrdersLoading(false);
+      });
+
+    fetch("/api/contact")
+      .then((res) => res.json())
+      .then(({ messages }: { messages: ContactMessage[] }) => {
+        setMessages(messages ?? []);
+        setMessagesLoading(false);
       });
   }, []);
 
@@ -254,6 +265,39 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
             ))}
             {!ordersLoading && orders.length === 0 ? (
               <li className={labelClass}>Aucune commande pour le moment.</li>
+            ) : null}
+          </ul>
+        </div>
+      </div>
+
+      <div className="grid-matrix mt-16 md:mt-24">
+        <div className="md:col-span-12">
+          <h2 className={labelClass}>
+            Messages {messagesLoading ? "" : `(${messages.length})`}
+          </h2>
+
+          <ul className="mt-8 flex flex-col gap-y-8">
+            {messages.map((msg) => (
+              <li key={msg.id} className="border-b border-ink/10 pb-8">
+                <div className="flex flex-wrap items-start justify-between gap-8">
+                  <div>
+                    <p className="font-serif text-lg">{msg.name}</p>
+                    <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
+                      {msg.email} — {new Date(msg.createdAt).toLocaleDateString("fr-FR")}
+                    </p>
+                    <p className="mt-2 max-w-xl font-sans text-sm text-ink/70">{msg.message}</p>
+                  </div>
+                  <a
+                    href={`mailto:${msg.email}`}
+                    className="shrink-0 font-sans text-[11px] uppercase tracking-widest text-ink underline underline-offset-4 hover:text-ink/70"
+                  >
+                    Répondre
+                  </a>
+                </div>
+              </li>
+            ))}
+            {!messagesLoading && messages.length === 0 ? (
+              <li className={labelClass}>Aucun message pour le moment.</li>
             ) : null}
           </ul>
         </div>
