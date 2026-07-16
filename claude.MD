@@ -16,7 +16,9 @@ You are an expert design-engineer trained in the objective corporate design phil
 
 ## 2. Shop Grid & Filter Sidebar
 
-The homepage (`/`) is editorial only — a fixed hero statement and philosophy quote, no product listing. All dynamic product content (added/removed via the admin panel) lives on its own route, `/shop`, as a masonry card layout rather than the asymmetric homepage treatment this project used earlier.
+The homepage (`/`) is editorial-first — hero statement and philosophy quote — but is followed by a curated "Selected Works" masonry section: products tagged with the `Selected Works` keyword (managed via the same admin keyword tool as any other tag) render there in the same masonry component used on `/shop`. The section renders nothing at all when no product carries that tag, rather than showing an empty block. The full, filterable catalog lives on its own route, `/shop`, rather than the asymmetric homepage treatment this project used earlier.
+
+The masonry itself (`components/MasonryGrid.tsx`) is shared between both placements so they can't visually drift apart. On `/shop` it sits inside the filter-sidebar layout; on the homepage it runs the full `grid-container` width.
 
 `/shop` splits the 12-column matrix into two fixed regions at `md` and up:
 *   **Filter sidebar:** columns 1–3 (`col-span-3`). Availability toggle, collection selector, price min/max, sort selector. Same input styling (underlined, serif value, tracked-out sans label) as the admin dashboard forms.

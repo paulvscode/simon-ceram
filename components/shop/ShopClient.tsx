@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import ProductCard from "@/components/ProductCard";
+import MasonryGrid from "@/components/MasonryGrid";
 import type { Product } from "@/lib/products";
 import type { Keyword } from "@/lib/keywords";
 
@@ -163,13 +163,7 @@ export default function ShopClient({
           {products.length === 0 ? (
             <p className={labelClass}>Aucune pièce ne correspond à ces critères.</p>
           ) : (
-            <div className="columns-1 gap-8 sm:columns-2 lg:columns-3">
-              {products.map((product) => (
-                <div key={product.id} className="mb-16 break-inside-avoid">
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
+            <MasonryGrid products={products} />
           )}
         </div>
       </div>
