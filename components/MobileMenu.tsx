@@ -18,8 +18,8 @@ export default function MobileMenu() {
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-[250] bg-canvas">
-          <div className="grid-container flex items-center justify-between py-8">
+        <div className="fixed inset-0 z-[250] flex flex-col bg-canvas">
+          <div className="grid-container flex w-full items-center justify-between py-8">
             <a
               href="/"
               onClick={() => setOpen(false)}
@@ -35,7 +35,7 @@ export default function MobileMenu() {
             </button>
           </div>
 
-          <nav className="grid-container mt-16 flex flex-col gap-y-8">
+          <nav className="flex flex-1 flex-col items-center justify-center gap-y-8">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
