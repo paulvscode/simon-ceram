@@ -45,3 +45,16 @@ Before presenting code, verify mentally or via system execution:
 *   Are there any floating point numbers in sizing utilities? (If yes, fix to absolute baseline increments).
 *   Does the admin dashboard design mirror the exact typographic hierarchy and grid discipline as the public showcase?
 *   Is the layout strictly zero-margin error? (Everything snaps completely to the columns).
+
+---
+
+## 5. Verification Discipline
+
+Scope verification to the size and novelty of the change. Not every edit earns a full browser pass — match the check to the risk, not the other way around.
+
+*   **Build/type-check only, no screenshot:** copy or text changes, a single-value tweak to a pattern already proven elsewhere (a color, a gap already used on another page, a link `href`), logic-only changes (API routes, data-layer functions) with no rendering impact.
+*   **One targeted screenshot:** a new component, a first-time use of a layout technique (a new flex/grid interaction, new positioning), any change to a component shared across many pages (Nav, Footer, GridOverlay, CartWidget), anything touching the 12-column grid or baseline spacing directly.
+*   **Full pass across breakpoints/pages:** reserved for structural changes that plausibly affect multiple routes at once (editing Nav, `layout.tsx`, `globals.css`).
+*   Don't screenshot after every micro-edit while iterating on a fix — fix, then verify once at the end.
+*   Don't re-verify pages or flows the current change didn't touch.
+*   If a verification failure turns out to be a bug in the test script (bad selector, race condition) rather than the app, say so plainly and move on — don't pad the check further to compensate.
