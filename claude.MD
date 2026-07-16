@@ -16,16 +16,16 @@ You are an expert design-engineer trained in the objective corporate design phil
 
 ## 2. Shop Grid & Filter Sidebar
 
-The homepage (`/`) is editorial only — a fixed hero statement and philosophy quote, no product listing. All dynamic product content (added/removed via the admin panel) lives on its own route, `/shop`, as a uniform card grid rather than the asymmetric homepage treatment this project used earlier.
+The homepage (`/`) is editorial only — a fixed hero statement and philosophy quote, no product listing. All dynamic product content (added/removed via the admin panel) lives on its own route, `/shop`, as a masonry card layout rather than the asymmetric homepage treatment this project used earlier.
 
 `/shop` splits the 12-column matrix into two fixed regions at `md` and up:
 *   **Filter sidebar:** columns 1–3 (`col-span-3`). Availability toggle, collection selector, price min/max, sort selector. Same input styling (underlined, serif value, tracked-out sans label) as the admin dashboard forms.
-*   **Product grid:** columns 4–12 (`col-start-4 col-span-9`). Cards laid out in a uniform, evenly-gapped grid (2-up tablet, 3-up desktop) — no offset/whitespace patterning. Every card is the same shape; density and scannability matter more than the exhibition-catalog asymmetry used on the homepage hero.
+*   **Product grid:** columns 4–12 (`col-start-4 col-span-9`). A CSS multi-column masonry (`columns-2` tablet, `columns-3` desktop, fixed `gap-8` between columns) — each card's height follows its image's natural aspect ratio rather than being cropped to a uniform box, so the columns settle into an organic, staggered rhythm. Column gutters stay fixed per §1; only the row heights are allowed to vary.
 
 ### Responsive Collapse Rule
 Below `md` (768px):
 *   The sidebar stacks above the grid, both at full width (`grid-cols-1`).
-*   The product grid itself still keeps its own internal columns where they fit (2-up), collapsing to 1-up only at the narrowest widths.
+*   The product masonry itself still keeps its own internal columns where they fit (`columns-2`), collapsing to a single column only at the narrowest widths.
 *   The 8px baseline rhythm and fixed gutters (reduced to `16px` / `gap-4` on mobile) still apply throughout.
 
 ---

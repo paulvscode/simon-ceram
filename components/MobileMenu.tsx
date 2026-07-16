@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { NAV_LINKS } from "@/lib/nav-links";
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const links = pathname === "/" ? NAV_LINKS : [{ label: "Accueil", href: "/" }, ...NAV_LINKS];
 
   return (
     <>
@@ -36,7 +39,7 @@ export default function MobileMenu() {
           </div>
 
           <nav className="flex flex-1 flex-col items-center justify-center gap-y-8">
-            {NAV_LINKS.map((link) => (
+            {links.map((link) => (
               <a
                 key={link.href}
                 href={link.href}

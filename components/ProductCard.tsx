@@ -10,14 +10,18 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <article>
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-ink/5">
+      <div
+        className={`relative w-full overflow-hidden bg-ink/5 ${
+          product.imageUrl ? "" : "aspect-[3/4]"
+        }`}
+      >
         {product.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.imageUrl}
             alt={product.title}
             loading="lazy"
-            className={`h-full w-full object-cover ${product.sold ? "grayscale" : ""}`}
+            className={`block h-auto w-full ${product.sold ? "grayscale" : ""}`}
           />
         ) : null}
         {product.sold ? (

@@ -163,9 +163,11 @@ export default function ShopClient({
           {products.length === 0 ? (
             <p className={labelClass}>Aucune pièce ne correspond à ces critères.</p>
           ) : (
-            <div className="grid grid-cols-1 gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="columns-1 gap-8 sm:columns-2 lg:columns-3">
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <div key={product.id} className="mb-16 break-inside-avoid">
+                  <ProductCard product={product} />
+                </div>
               ))}
             </div>
           )}
