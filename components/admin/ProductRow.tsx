@@ -66,6 +66,10 @@ export default function ProductRow({
 
   return (
     <li className={`${cardClass} ${product.online ? "" : "border-dashed bg-ink/[0.02]"}`}>
+      {/* First thing on the card: the most-used control, full width. */}
+      <div className="mb-4">
+        <OnlineSwitch online={product.online} disabled={saving} onChange={onToggleOnline} />
+      </div>
       {/* Phones: buttons drop to their own full-width row under the title. */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="flex min-w-0 flex-1 gap-4">
@@ -102,12 +106,7 @@ export default function ProductRow({
             {details ? `${details} · ` : ""}
             {formatEuros(product.priceCents)}
           </p>
-          <div className="mt-2">
-            <OnlineSwitch online={product.online} disabled={saving} onChange={onToggleOnline} />
-          </div>
-          {product.online ? null : (
-            <p className={`mt-2 ${hintClass}`}>Masquée : n&rsquo;apparaît ni sur le site ni dans la boutique.</p>
-          )}
+
         </div>
         </div>
 

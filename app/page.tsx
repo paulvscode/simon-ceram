@@ -1,7 +1,7 @@
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import HeroBackground from "@/components/HeroBackground";
-import MasonryGrid from "@/components/MasonryGrid";
+import ProductGrid from "@/components/ProductGrid";
 import Footer from "@/components/Footer";
 import ProcessHero from "@/components/ProcessHero";
 import ShopCta from "@/components/ShopCta";
@@ -46,7 +46,7 @@ export default async function HomePage() {
                 </div>
               </div>
               <div className="mt-16">
-                <MasonryGrid products={selectedWorks} />
+                <ProductGrid products={selectedWorks} />
               </div>
             </>
           ) : null}

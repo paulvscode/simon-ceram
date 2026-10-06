@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import MasonryGrid from "@/components/MasonryGrid";
+import ProductGrid from "@/components/ProductGrid";
 import type { Product } from "@/lib/products";
 import type { Keyword } from "@/lib/keywords";
 import type { ShopSettings } from "@/lib/shop-settings";
@@ -180,7 +180,7 @@ export default function ShopClient({
           {products.length === 0 ? (
             <p className={labelClass}>Aucune pièce ne correspond à ces critères.</p>
           ) : (
-            <MasonryGrid products={products} />
+            <ProductGrid products={products} />
           )}
         </div>
       </div>

@@ -38,6 +38,9 @@ const config: Config = {
       colors: {
         canvas: "#FBFBFA",
         ink: "#111111",
+        // canvas + 5% ink, but opaque: the square behind product pictures, so a
+        // hover image with margins never lets the main image show through.
+        well: "#F0F0EF",
       },
       fontFamily: {
         serif: ["var(--font-serif)", ...defaultTheme.fontFamily.serif],

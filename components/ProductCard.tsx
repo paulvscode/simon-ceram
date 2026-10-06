@@ -3,6 +3,7 @@
 import type { Product } from "@/lib/products";
 import { useCart } from "@/lib/cart-context";
 import { formatEuros } from "@/lib/format";
+import { squareImageUrl } from "@/lib/product-image";
 
 export default function ProductCard({ product }: { product: Product }) {
   const { isInCart, addToCart, removeFromCart } = useCart();
@@ -11,29 +12,26 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <article>
       <div
-        className={`group relative w-full overflow-hidden bg-ink/5 ${
-          product.imageUrl ? "" : "aspect-[3/4]"
-        }`}
+        className="group relative aspect-square w-full overflow-hidden bg-well"
       >
         {product.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={product.imageUrl}
+            src={squareImageUrl(product.imageUrl)}
             alt={product.title}
             loading="lazy"
-            className={`block h-auto w-full ${product.sold ? "grayscale" : ""}`}
+            className={`block h-full w-full object-contain ${product.sold ? "grayscale" : ""}`}
           />
         ) : null}
         {product.imageUrl && product.hoverImageUrl ? (
-          // The main image sets the card's height (masonry, claude.MD §2);
-          // the hover image fills that same box and cross-fades in over it.
+          // Same square as the main image; cross-fades in over it on hover.
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={product.hoverImageUrl}
+            src={squareImageUrl(product.hoverImageUrl)}
             alt=""
             aria-hidden
             loading="lazy"
-            className={`absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 ${
+            className={`absolute inset-0 h-full w-full bg-well object-contain opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 ${
               product.sold ? "grayscale" : ""
             }`}
           />

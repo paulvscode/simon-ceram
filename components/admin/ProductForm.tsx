@@ -188,9 +188,6 @@ export default function ProductForm({
         <div className="mt-2">
           <OnlineSwitch online={form.online} onChange={(online) => set("online", online)} />
         </div>
-        <p className={`mt-2 ${hintClass}`}>
-          Hors ligne : la pièce est enregistrée mais n&rsquo;apparaît pas sur le site.
-        </p>
       </div>
 
       {error ? <p className={`mt-4 ${errorClass}`}>{error}</p> : null}
