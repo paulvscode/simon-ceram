@@ -7,18 +7,21 @@ import { formatEuros } from "@/lib/format";
 export default function CartWidget() {
   const { cart, removeFromCart, isDrawerOpen, openDrawer, closeDrawer } = useCart();
   const { items, loading } = useCartProducts();
+  // Count what can actually be shown (pieces taken offline or deleted drop
+  // out of `items`); fall back to the stored ids while loading.
+  const count = loading ? cart.length : items.length;
 
   const available = items.filter((p) => !p.sold);
   const totalCents = available.reduce((sum, p) => sum + p.priceCents, 0);
 
   return (
     <>
-      {cart.length > 0 ? (
+      {count > 0 ? (
         <button
           onClick={openDrawer}
           className="font-sans text-[11px] uppercase tracking-widest text-ink/70 transition-colors duration-400 hover:text-ink"
         >
-          Panier ({cart.length})
+          Panier ({count})
         </button>
       ) : null}
 

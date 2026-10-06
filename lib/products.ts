@@ -17,6 +17,9 @@ export type Product = {
   keywords: string[];
   // Off by default: the description shows on the site only when enabled per piece.
   showDescription: boolean;
+  // "En ligne" / "Hors ligne": offline pieces are hidden from every public
+  // surface (homepage, shop, cart, checkout) but stay editable in the admin.
+  online: boolean;
   createdAt: number;
 };
 
@@ -36,6 +39,8 @@ function normalize(raw: Partial<Product>[]): Product[] {
     collection: p.collection ?? "",
     keywords: p.keywords ?? [],
     showDescription: p.showDescription ?? false,
+    // Pieces created before the switch existed were all public.
+    online: p.online ?? true,
     createdAt: p.createdAt ?? Date.now(),
   }));
 }
@@ -57,6 +62,11 @@ async function readAll(): Promise<Product[]> {
 // `change` returns null for "nothing to do", which skips the write.
 async function mutateProducts(change: (products: Product[]) => Product[] | null): Promise<void> {
   await updateDocument<Partial<Product>[]>("products", await loadSeed(), (raw) => change(normalize(raw)) ?? raw);
+}
+
+/** Only "en ligne" pieces: what visitors may see and buy. */
+export async function getPublicProducts(): Promise<Product[]> {
+  return (await getProducts()).filter((p) => p.online);
 }
 
 export async function getProducts(): Promise<Product[]> {
@@ -81,6 +91,7 @@ export type ProductFields = Pick<
   | "priceCents"
   | "collection"
   | "showDescription"
+  | "online"
 >;
 
 const TEXT_FIELDS = [
@@ -123,6 +134,11 @@ export function parseProductFields(
   if (body.showDescription !== undefined) {
     if (typeof body.showDescription !== "boolean") return { error: "Valeur d’affichage invalide." };
     fields.showDescription = body.showDescription;
+  }
+
+  if (body.online !== undefined) {
+    if (typeof body.online !== "boolean") return { error: "Valeur « en ligne » invalide." };
+    fields.online = body.online;
   }
 
   if (body.keywords !== undefined) {

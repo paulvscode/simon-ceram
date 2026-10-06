@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ImageUploadField from "./ImageUploadField";
+import OnlineSwitch from "./OnlineSwitch";
 import type { Product } from "@/lib/products";
 import {
   checkboxClass,
@@ -19,6 +20,7 @@ export type ProductFormValues = {
   subtitle: string;
   description: string;
   showDescription: boolean;
+  online: boolean;
   imageUrl: string;
   hoverImageUrl: string;
   priceEuros: string;
@@ -30,6 +32,7 @@ export const EMPTY_PRODUCT_FORM: ProductFormValues = {
   subtitle: "",
   description: "",
   showDescription: false,
+  online: true,
   imageUrl: "",
   hoverImageUrl: "",
   priceEuros: "",
@@ -42,6 +45,7 @@ export function productToFormValues(product: Product): ProductFormValues {
     subtitle: product.subtitle,
     description: product.description,
     showDescription: product.showDescription,
+    online: product.online,
     imageUrl: product.imageUrl,
     hoverImageUrl: product.hoverImageUrl,
     priceEuros: (product.priceCents / 100).toString().replace(".", ","),
@@ -178,6 +182,16 @@ export default function ProductForm({
         onChange={(v) => set("hoverImageUrl", v)}
         onUploadingChange={trackUpload}
       />
+
+      <div className="mt-4">
+        <p className={labelClass}>Visibilité</p>
+        <div className="mt-2">
+          <OnlineSwitch online={form.online} onChange={(online) => set("online", online)} />
+        </div>
+        <p className={`mt-2 ${hintClass}`}>
+          Hors ligne : la pièce est enregistrée mais n&rsquo;apparaît pas sur le site.
+        </p>
+      </div>
 
       {error ? <p className={`mt-4 ${errorClass}`}>{error}</p> : null}
 

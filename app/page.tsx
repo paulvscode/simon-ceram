@@ -5,7 +5,7 @@ import MasonryGrid from "@/components/MasonryGrid";
 import Footer from "@/components/Footer";
 import ProcessHero from "@/components/ProcessHero";
 import ShopCta from "@/components/ShopCta";
-import { getProducts } from "@/lib/products";
+import { getPublicProducts } from "@/lib/products";
 import { getKeywords } from "@/lib/keywords";
 import { getHomeBackground, getProcessSection } from "@/lib/site-content";
 
@@ -15,7 +15,7 @@ const SELECTED_WORKS_LABEL = "selected works";
 
 export default async function HomePage() {
   const [products, keywords, background, process] = await Promise.all([
-    getProducts(),
+    getPublicProducts(),
     getKeywords(),
     getHomeBackground(),
     getProcessSection(),

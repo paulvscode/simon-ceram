@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Product } from "@/lib/products";
 import type { Keyword } from "@/lib/keywords";
 import { formatEuros } from "@/lib/format";
+import OnlineSwitch from "./OnlineSwitch";
 import ProductForm, { productToFormValues, type ProductFormValues } from "./ProductForm";
 import {
   cardClass,
@@ -22,6 +23,7 @@ export default function ProductRow({
   saving,
   error,
   onToggleDescription,
+  onToggleOnline,
   onToggleKeyword,
   onEdit,
   onDelete,
@@ -31,6 +33,7 @@ export default function ProductRow({
   saving: boolean;
   error: string | null;
   onToggleDescription: () => void;
+  onToggleOnline: (online: boolean) => void;
   onToggleKeyword: (keywordId: string) => void;
   // Resolves to an error message, or null on success.
   onEdit: (values: ProductFormValues) => Promise<string | null>;
@@ -62,11 +65,11 @@ export default function ProductRow({
   const details = [product.subtitle, product.collection].filter(Boolean).join(" · ");
 
   return (
-    <li className={cardClass}>
+    <li className={`${cardClass} ${product.online ? "" : "border-dashed bg-ink/[0.02]"}`}>
       {/* Phones: buttons drop to their own full-width row under the title. */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="flex min-w-0 flex-1 gap-4">
-        <div className="flex shrink-0 gap-2">
+        <div className={`flex shrink-0 gap-2 ${product.online ? "" : "opacity-40 grayscale"}`}>
           <div className="h-16 w-16 overflow-hidden rounded bg-ink/5">
             {product.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -99,6 +102,12 @@ export default function ProductRow({
             {details ? `${details} · ` : ""}
             {formatEuros(product.priceCents)}
           </p>
+          <div className="mt-2">
+            <OnlineSwitch online={product.online} disabled={saving} onChange={onToggleOnline} />
+          </div>
+          {product.online ? null : (
+            <p className={`mt-2 ${hintClass}`}>Masquée : n&rsquo;apparaît ni sur le site ni dans la boutique.</p>
+          )}
         </div>
         </div>
 

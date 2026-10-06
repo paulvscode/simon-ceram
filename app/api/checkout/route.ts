@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   const products = await getProductsByIds(productIds);
   const missingOrSold = productIds.filter(
-    (id) => !products.some((p) => p.id === id && !p.sold)
+    (id) => !products.some((p) => p.id === id && !p.sold && p.online)
   );
 
   if (missingOrSold.length > 0) {

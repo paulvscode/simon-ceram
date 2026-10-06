@@ -372,6 +372,7 @@ export default function Dashboard({
                     onToggleDescription={() =>
                       updateProduct(product, { showDescription: !product.showDescription })
                     }
+                    onToggleOnline={(online) => updateProduct(product, { online })}
                     onToggleKeyword={(keywordId) => toggleProductKeyword(product, keywordId)}
                     onEdit={(values) => handleEdit(product, values)}
                     onDelete={() => handleDelete(product)}

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { addProduct, getProducts, parseProductFields } from "@/lib/products";
+import { addProduct, getPublicProducts, parseProductFields } from "@/lib/products";
 import { isValidSession, SESSION_COOKIE } from "@/lib/session";
 
+// Public (the cart resolves its ids here): online pieces only. The admin
+// reads the full catalogue server-side, not through this route.
 export async function GET() {
-  const products = await getProducts();
+  const products = await getPublicProducts();
   return NextResponse.json({ products });
 }
 
@@ -35,6 +37,7 @@ export async function POST(request: NextRequest) {
     priceCents: fields.priceCents,
     collection: fields.collection ?? "",
     showDescription: fields.showDescription ?? false,
+    online: fields.online ?? true,
   });
 
   return NextResponse.json({ product }, { status: 201 });
