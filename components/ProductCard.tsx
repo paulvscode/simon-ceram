@@ -3,7 +3,7 @@
 import type { Product } from "@/lib/products";
 import { useCart } from "@/lib/cart-context";
 import { formatEuros } from "@/lib/format";
-import { productImageUrl } from "@/lib/product-image";
+import ProductImages from "./ProductImages";
 
 export default function ProductCard({ product }: { product: Product }) {
   const { isInCart, addToCart, removeFromCart } = useCart();
@@ -11,37 +11,12 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <article>
-      <div
-        className="group relative aspect-square w-full overflow-hidden bg-well"
-      >
-        {product.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={productImageUrl(product.imageUrl)}
-            alt={product.title}
-            loading="lazy"
-            className={`block h-full w-full object-contain ${product.sold ? "grayscale" : ""}`}
-          />
-        ) : null}
-        {product.imageUrl && product.hoverImageUrl ? (
-          // Same square as the main image; cross-fades in over it on hover.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={productImageUrl(product.hoverImageUrl)}
-            alt=""
-            aria-hidden
-            loading="lazy"
-            className={`absolute inset-0 h-full w-full bg-well object-contain opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 ${
-              product.sold ? "grayscale" : ""
-            }`}
-          />
-        ) : null}
-        {product.sold ? (
-          <span className="absolute left-4 top-4 bg-canvas px-2 font-sans leading-6 text-[11px] uppercase tracking-widest text-ink">
-            Vendu
-          </span>
-        ) : null}
-      </div>
+      <ProductImages
+        title={product.title}
+        imageUrl={product.imageUrl}
+        hoverImageUrl={product.hoverImageUrl}
+        sold={product.sold}
+      />
       <h3 className="mt-8 font-serif text-2xl tracking-wide text-ink">{product.title}</h3>
       <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
         {product.subtitle}

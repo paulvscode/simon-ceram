@@ -61,3 +61,13 @@
     @apply border-l-2 border-ink/20 pl-4 italic;
   }
 }
+
+@layer utilities {
+  /* Swipe galleries (ProductImages): scrollable, but no visible scrollbar. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
