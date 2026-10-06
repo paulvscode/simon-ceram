@@ -21,7 +21,7 @@ const sans = Source_Code_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "Simon Barraud — Céramiste",
+  title: "Simon Barraud de Lagerie — Céramiste",
   description: "Pièces uniques façonnées à la main, en grès et porcelaine.",
 };
 

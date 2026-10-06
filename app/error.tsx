@@ -22,7 +22,7 @@ export default function ErrorPage({ reset }: { error: Error & { digest?: string 
       <div className="grid-matrix w-full">
         <div className="md:col-span-7">
           <p className="font-sans text-[11px] uppercase tracking-widest text-ink/50">
-            Simon Barraud
+            Simon Barraud de Lagerie
           </p>
           <h1 className="mt-8 font-serif text-3xl italic leading-snug tracking-wide text-ink md:text-4xl">
             Le site est momentanément indisponible.

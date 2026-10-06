@@ -5,6 +5,7 @@ import {
   type HomeBackground,
 } from "@/lib/home-background";
 import { sanitizeLegalHtml } from "@/lib/legal-html";
+import { DEFAULT_HERO_TEXT, normalizeHeroText, type HeroText } from "@/lib/hero-text";
 import {
   DEFAULT_PROCESS_SECTION,
   normalizeProcessSection,
@@ -69,4 +70,16 @@ export async function saveProcessSection(input: unknown): Promise<ProcessSection
   const section = normalizeProcessSection(input);
   await writeDocument("process-section", section);
   return section;
+}
+
+// ---- Homepage hero text ----
+
+export async function getHeroText(): Promise<HeroText> {
+  return readOrDefault("hero", normalizeHeroText, DEFAULT_HERO_TEXT);
+}
+
+export async function saveHeroText(input: unknown): Promise<HeroText> {
+  const hero = normalizeHeroText(input);
+  await writeDocument("hero", hero);
+  return hero;
 }

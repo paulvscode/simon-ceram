@@ -18,7 +18,7 @@ export default function Footer() {
       <div className="grid-container pb-8 pt-16 md:pt-24">
         <div className="grid-matrix">
           <div className="md:col-span-12 lg:col-span-4">
-            <a href="/" aria-label="Simon Barraud — accueil" className="inline-block">
+            <a href="/" aria-label="Simon Barraud de Lagerie — accueil" className="inline-block">
               <Logo />
             </a>
             <p className="mt-8 max-w-xs font-sans text-sm leading-relaxed text-ink/60">
@@ -57,7 +57,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-16 flex flex-col gap-4 border-t border-ink/10 pt-8 sm:flex-row sm:items-center sm:justify-between md:mt-24">
-          <p className={labelClass}>&copy; {new Date().getFullYear()} Simon Barraud</p>
+          <p className={labelClass}>&copy; {new Date().getFullYear()} Simon Barraud de Lagerie</p>
           <a href="/mentions-legales" className={`${labelClass} transition-colors duration-400 hover:text-ink`}>
             Mentions légales
           </a>

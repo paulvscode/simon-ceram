@@ -7,18 +7,19 @@ import ProcessHero from "@/components/ProcessHero";
 import ShopCta from "@/components/ShopCta";
 import { getPublicProducts } from "@/lib/products";
 import { getKeywords } from "@/lib/keywords";
-import { getHomeBackground, getProcessSection } from "@/lib/site-content";
+import { getHeroText, getHomeBackground, getProcessSection } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
 
 const SELECTED_WORKS_LABEL = "selected works";
 
 export default async function HomePage() {
-  const [products, keywords, background, process] = await Promise.all([
+  const [products, keywords, background, process, hero] = await Promise.all([
     getPublicProducts(),
     getKeywords(),
     getHomeBackground(),
     getProcessSection(),
+    getHeroText(),
   ]);
 
   const selectedWorksKeyword = keywords.find(
@@ -33,7 +34,7 @@ export default async function HomePage() {
       <HeroBackground background={background} />
       <main className="relative z-10">
         <Nav />
-        <Hero />
+        <Hero hero={hero} />
 
         {/* Selected Works (only when some piece carries the tag), always
             followed by the call-to-action into /shop. */}

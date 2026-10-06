@@ -7,7 +7,7 @@ export default function Nav() {
   return (
     <header className="grid-container py-8">
       <nav className="flex items-center justify-between">
-        <a href="/" aria-label="Simon Barraud — accueil">
+        <a href="/" aria-label="Simon Barraud de Lagerie — accueil">
           <Logo />
         </a>
         <div className="flex items-center gap-8">

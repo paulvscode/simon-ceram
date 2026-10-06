@@ -10,7 +10,9 @@ import type { ShopSettings } from "@/lib/shop-settings";
 import type { HomeBackground } from "@/lib/home-background";
 import type { LegalPage } from "@/lib/site-content";
 import type { ProcessSection } from "@/lib/process-section";
+import type { HeroText } from "@/lib/hero-text";
 import { formatEuros } from "@/lib/format";
+import HeroTextEditor from "./HeroTextEditor";
 import HomeBackgroundEditor from "./HomeBackgroundEditor";
 import KeywordManager from "./KeywordManager";
 import LegalPageEditor from "./LegalPageEditor";
@@ -42,12 +44,14 @@ export default function Dashboard({
   initialHomeBackground,
   initialLegalPage,
   initialProcessSection,
+  initialHeroText,
 }: {
   initialProducts: Product[];
   initialShopSettings: ShopSettings;
   initialHomeBackground: HomeBackground;
   initialLegalPage: LegalPage;
   initialProcessSection: ProcessSection;
+  initialHeroText: HeroText;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("pieces");
@@ -474,7 +478,8 @@ export default function Dashboard({
 
         <div className={`grid-matrix items-start ${tab === "site" ? "" : "hidden"}`}>
           <div className="flex flex-col gap-4 md:col-span-6 md:gap-8">
-            <HomeBackgroundEditor initialBackground={initialHomeBackground} />
+            <HeroTextEditor initialHero={initialHeroText} />
+            <HomeBackgroundEditor initialBackground={initialHomeBackground} quote={initialHeroText.quote} />
             <ProcessSectionEditor initialSection={initialProcessSection} />
           </div>
           <div className="mt-4 md:col-start-7 md:col-span-6 md:mt-0">

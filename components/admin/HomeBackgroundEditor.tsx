@@ -17,7 +17,14 @@ import {
   sectionTitleClass,
 } from "./ui";
 
-export default function HomeBackgroundEditor({ initialBackground }: { initialBackground: HomeBackground }) {
+export default function HomeBackgroundEditor({
+  initialBackground,
+  quote,
+}: {
+  initialBackground: HomeBackground;
+  // The saved hero text, shown over the preview.
+  quote: string;
+}) {
   const [saved, setSaved] = useState(initialBackground);
   const [bg, setBg] = useState(initialBackground);
   const [uploading, setUploading] = useState(false);
@@ -76,7 +83,7 @@ export default function HomeBackgroundEditor({ initialBackground }: { initialBac
         ) : null}
         <div className="absolute inset-0 bg-canvas" style={{ opacity: bg.veil / 100 }} />
         <p className="relative p-4 font-serif text-xl italic leading-snug text-ink md:p-8 md:text-3xl">
-          La forme suit la lenteur. Chaque pièce naît d&rsquo;un même geste&hellip;
+          {quote}
         </p>
       </div>
 

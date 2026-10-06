@@ -1,14 +1,21 @@
 /**
- * Brand wordmark: "Simon BARRAUD" in the site serif — given name in regular
+ * Brand wordmark: "Simon BARRAUD DE LAGERIE" in the site serif — given name in regular
  * weight, family name in semi-bold small-tracked capitals (French Prénom NOM
- * convention) — over a tracked "Céramiste" descriptor. Exactly 40px tall
- * (24px + 16px lines) so it sits on the 8px baseline (claude.MD §1).
+ * convention) — over a tracked "Céramiste" descriptor. 40px tall (24px +
+ * 16px lines) so it sits on the 8px baseline (claude.MD §1); 64px on phones
+ * narrower than 360px, where the family name takes its own line.
  */
 export default function Logo() {
   return (
     <span className="flex flex-col">
-      <span className="font-serif text-xl leading-6 text-ink">
-        Simon <span className="font-semibold uppercase tracking-[0.08em]">Barraud</span>
+      {/* One line: 16px on phones (the full name is 263px; a 360px phone has
+          272px beside the menu button), 20px from `sm`. Below 360px the family
+          name drops cleanly onto its own line instead of breaking mid-name. */}
+      <span className="whitespace-nowrap font-serif text-base leading-6 text-ink sm:text-xl sm:leading-6">
+        Simon{" "}
+        <span className="font-semibold uppercase tracking-[0.08em] max-[359px]:block">
+          Barraud de Lagerie
+        </span>
       </span>
       <span className="font-sans text-[10px] uppercase leading-4 tracking-widest text-ink/50">
         Céramiste

@@ -24,7 +24,7 @@ export default function MobileMenu() {
       {open ? (
         <div className="fixed inset-0 z-[250] flex flex-col bg-canvas">
           <div className="grid-container flex w-full items-center justify-between py-8">
-            <a href="/" onClick={() => setOpen(false)} aria-label="Simon Barraud — accueil">
+            <a href="/" onClick={() => setOpen(false)} aria-label="Simon Barraud de Lagerie — accueil">
               <Logo />
             </a>
             <button
