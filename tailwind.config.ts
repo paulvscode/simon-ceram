@@ -41,7 +41,10 @@ const config: Config = {
       },
       fontFamily: {
         serif: ["var(--font-serif)", ...defaultTheme.fontFamily.serif],
-        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
+        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.mono],
+        mono: ["var(--font-sans)", ...defaultTheme.fontFamily.mono],
+        // Plain system UI face for the admin: legibility over showcase styling.
+        ui: defaultTheme.fontFamily.sans,
       },
       gridTemplateColumns: {
         12: "repeat(12, minmax(0, 1fr))",

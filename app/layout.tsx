@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Fraunces, Source_Code_Pro } from "next/font/google";
 import GridOverlay from "@/components/GridOverlay";
 import { CartProvider } from "@/lib/cart-context";
 import "./globals.css";
@@ -12,7 +12,7 @@ const serif = Fraunces({
   display: "swap",
 });
 
-const sans = Inter({
+const sans = Source_Code_Pro({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-sans",

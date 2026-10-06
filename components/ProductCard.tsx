@@ -11,7 +11,7 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <article>
       <div
-        className={`relative w-full overflow-hidden bg-ink/5 ${
+        className={`group relative w-full overflow-hidden bg-ink/5 ${
           product.imageUrl ? "" : "aspect-[3/4]"
         }`}
       >
@@ -24,8 +24,22 @@ export default function ProductCard({ product }: { product: Product }) {
             className={`block h-auto w-full ${product.sold ? "grayscale" : ""}`}
           />
         ) : null}
+        {product.imageUrl && product.hoverImageUrl ? (
+          // The main image sets the card's height (masonry, claude.MD §2);
+          // the hover image fills that same box and cross-fades in over it.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.hoverImageUrl}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            className={`absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 ${
+              product.sold ? "grayscale" : ""
+            }`}
+          />
+        ) : null}
         {product.sold ? (
-          <span className="absolute left-4 top-4 bg-canvas px-3 py-1 font-sans text-[11px] uppercase tracking-widest text-ink">
+          <span className="absolute left-4 top-4 bg-canvas px-2 font-sans leading-6 text-[11px] uppercase tracking-widest text-ink">
             Vendu
           </span>
         ) : null}
@@ -34,7 +48,7 @@ export default function ProductCard({ product }: { product: Product }) {
       <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
         {product.subtitle}
       </p>
-      {product.description ? (
+      {product.showDescription && product.description ? (
         <p className="mt-4 font-sans text-sm leading-relaxed text-ink/70">
           {product.description}
         </p>

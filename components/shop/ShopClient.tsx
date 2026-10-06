@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import MasonryGrid from "@/components/MasonryGrid";
 import type { Product } from "@/lib/products";
 import type { Keyword } from "@/lib/keywords";
+import type { ShopSettings } from "@/lib/shop-settings";
 
 type Availability = "all" | "available" | "sold";
 type Sort = "newest" | "price-asc" | "price-desc";
@@ -15,9 +16,11 @@ const inputClass =
 export default function ShopClient({
   initialProducts,
   keywords,
+  settings,
 }: {
   initialProducts: Product[];
   keywords: Keyword[];
+  settings: ShopSettings;
 }) {
   const [availability, setAvailability] = useState<Availability>("all");
   const [collection, setCollection] = useState("all");
@@ -72,45 +75,53 @@ export default function ShopClient({
       </div>
 
       <div className="grid-matrix mt-16">
-        <aside className="md:col-span-3">
-          <p className={labelClass}>Disponibilité</p>
-          <div className="mt-4 flex flex-col gap-y-2">
-            {(
-              [
-                ["all", "Toutes les pièces"],
-                ["available", "Disponible"],
-                ["sold", "Vendu"],
-              ] as [Availability, string][]
-            ).map(([value, label]) => (
-              <label key={value} className="flex items-center gap-4 font-sans text-sm">
-                <input
-                  type="radio"
-                  className="accent-ink"
-                  checked={availability === value}
-                  onChange={() => setAvailability(value)}
-                />
-                {label}
-              </label>
-            ))}
-          </div>
+        <aside className="flex flex-col gap-y-12 md:col-span-3">
+          {settings.showAvailability ? (
+            <div>
+              <p className={labelClass}>Disponibilité</p>
+              <div className="mt-4 flex flex-col gap-y-2">
+                {(
+                  [
+                    ["all", "Toutes les pièces"],
+                    ["available", "Disponible"],
+                    ["sold", "Vendu"],
+                  ] as [Availability, string][]
+                ).map(([value, label]) => (
+                  <label key={value} className="flex items-center gap-4 font-sans text-sm">
+                    <input
+                      type="radio"
+                      className="accent-ink"
+                      checked={availability === value}
+                      onChange={() => setAvailability(value)}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
-          <p className={`mt-12 ${labelClass}`}>Collection</p>
-          <select
-            value={collection}
-            onChange={(e) => setCollection(e.target.value)}
-            className={`${inputClass} cursor-pointer`}
-          >
-            <option value="all">Toutes les collections</option>
-            {collections.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
+          {settings.showCollections ? (
+            <div>
+              <p className={labelClass}>Collection</p>
+              <select
+                value={collection}
+                onChange={(e) => setCollection(e.target.value)}
+                className={`${inputClass} cursor-pointer`}
+              >
+                <option value="all">Toutes les collections</option>
+                {collections.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
 
           {keywords.length > 0 ? (
-            <>
-              <p className={`mt-12 ${labelClass}`}>Mots-clés</p>
+            <div>
+              <p className={labelClass}>Mots-clés</p>
               <div className="mt-4 flex flex-col gap-y-2">
                 {keywords.map((keyword) => (
                   <label key={keyword.id} className="flex items-center gap-4 font-sans text-sm">
@@ -124,39 +135,45 @@ export default function ShopClient({
                   </label>
                 ))}
               </div>
-            </>
+            </div>
           ) : null}
 
-          <p className={`mt-12 ${labelClass}`}>Prix (€)</p>
-          <div className="mt-4 flex items-center gap-4">
-            <input
-              type="number"
-              min="0"
-              placeholder="Min"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-              className={inputClass}
-            />
-            <input
-              type="number"
-              min="0"
-              placeholder="Max"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-              className={inputClass}
-            />
-          </div>
+          {settings.showPriceRange ? (
+            <div>
+              <p className={labelClass}>Prix (€)</p>
+              <div className="mt-4 flex items-center gap-4">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Min"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  className={inputClass}
+                />
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Max"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+          ) : null}
 
-          <p className={`mt-12 ${labelClass}`}>Trier par</p>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as Sort)}
-            className={`${inputClass} cursor-pointer`}
-          >
-            <option value="newest">Plus récent</option>
-            <option value="price-asc">Prix croissant</option>
-            <option value="price-desc">Prix décroissant</option>
-          </select>
+          <div>
+            <p className={labelClass}>Trier par</p>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as Sort)}
+              className={`${inputClass} cursor-pointer`}
+            >
+              <option value="newest">Plus récent</option>
+              <option value="price-asc">Prix croissant</option>
+              <option value="price-desc">Prix décroissant</option>
+            </select>
+          </div>
         </aside>
 
         <div className="mt-16 md:col-start-4 md:col-span-9 md:mt-0">

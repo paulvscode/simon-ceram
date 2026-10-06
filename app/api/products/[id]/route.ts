@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { deleteProduct, setProductKeywords } from "@/lib/products";
+import { deleteProduct, parseProductFields, updateProduct } from "@/lib/products";
 import { isValidSession, SESSION_COOKIE } from "@/lib/session";
 
 export async function DELETE(
@@ -26,12 +26,18 @@ export async function PATCH(
     return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
 
-  const { keywords } = await request.json();
-  if (!Array.isArray(keywords) || !keywords.every((k) => typeof k === "string")) {
-    return NextResponse.json({ error: "Liste de mots-clés invalide." }, { status: 400 });
+  const parsed = parseProductFields((await request.json()) ?? {});
+  if ("error" in parsed) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+  if (Object.keys(parsed.fields).length === 0) {
+    return NextResponse.json({ error: "Aucune modification." }, { status: 400 });
   }
 
   const { id } = await params;
-  await setProductKeywords(id, keywords);
-  return NextResponse.json({ ok: true });
+  const product = await updateProduct(id, parsed.fields);
+  if (!product) {
+    return NextResponse.json({ error: "Pièce introuvable." }, { status: 404 });
+  }
+  return NextResponse.json({ product });
 }

@@ -5,13 +5,18 @@ import MasonryGrid from "@/components/MasonryGrid";
 import Footer from "@/components/Footer";
 import { getProducts } from "@/lib/products";
 import { getKeywords } from "@/lib/keywords";
+import { getHomeBackground } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
 
 const SELECTED_WORKS_LABEL = "selected works";
 
 export default async function HomePage() {
-  const [products, keywords] = await Promise.all([getProducts(), getKeywords()]);
+  const [products, keywords, background] = await Promise.all([
+    getProducts(),
+    getKeywords(),
+    getHomeBackground(),
+  ]);
 
   const selectedWorksKeyword = keywords.find(
     (k) => k.label.trim().toLowerCase() === SELECTED_WORKS_LABEL
@@ -22,7 +27,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroBackground />
+      <HeroBackground background={background} />
       <main className="relative z-10">
         <Nav />
         <Hero />

@@ -26,3 +26,38 @@
     @apply grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-8;
   }
 }
+
+@layer components {
+  /*
+   * Rich text from the admin editor (mentions légales). Shared by the editor
+   * and the public page so what's typed is what's published. Vertical rhythm
+   * stays on the 8px baseline (claude.MD §1); fonts come from the context.
+   */
+  .rich-text > * + * {
+    @apply mt-4;
+  }
+  .rich-text h2 {
+    @apply mt-12 text-xl font-semibold text-ink first:mt-0;
+  }
+  .rich-text h3 {
+    @apply mt-8 text-base font-semibold text-ink first:mt-0;
+  }
+  .rich-text ul {
+    @apply list-disc pl-6;
+  }
+  .rich-text ol {
+    @apply list-decimal pl-6;
+  }
+  .rich-text li + li {
+    @apply mt-2;
+  }
+  .rich-text li > p {
+    @apply mt-0;
+  }
+  .rich-text a {
+    @apply underline underline-offset-4 hover:text-ink;
+  }
+  .rich-text blockquote {
+    @apply border-l-2 border-ink/20 pl-4 italic;
+  }
+}

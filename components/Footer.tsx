@@ -15,6 +15,9 @@ export default function Footer() {
         </div>
         <div className="mt-8 md:col-start-10 md:col-span-3 md:mt-0 md:text-right">
           <p>&copy; {new Date().getFullYear()} Simon Céramique</p>
+          <a href="/mentions-legales" className="mt-2 block hover:text-ink">
+            Mentions légales
+          </a>
         </div>
       </div>
     </footer>

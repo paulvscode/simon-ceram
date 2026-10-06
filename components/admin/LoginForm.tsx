@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { cardClass, errorClass, hintClass, inputClass, labelClass, primaryButtonClass } from "./ui";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -33,28 +34,30 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="md:col-start-4 md:col-span-6 lg:col-start-5 lg:col-span-4">
-      <label className="block font-sans text-[11px] uppercase tracking-widest text-ink/50">
-        Mot de passe administrateur
+    <form
+      onSubmit={handleSubmit}
+      className={`${cardClass} md:col-start-4 md:col-span-6 lg:col-start-5 lg:col-span-4`}
+    >
+      <h1 className="text-xl font-semibold text-ink">Administration</h1>
+      <p className={`mt-2 ${hintClass}`}>Accès réservé à l&rsquo;atelier.</p>
+
+      <label className={`mt-4 ${labelClass}`}>
+        Mot de passe
+        <input
+          type="password"
+          autoFocus
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className={`mt-2 ${inputClass}`}
+        />
       </label>
-      <input
-        type="password"
-        autoFocus
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="mt-4 w-full border-0 border-b border-ink/20 bg-transparent py-2 font-serif text-xl text-ink outline-none focus:border-ink"
-      />
-      {error ? (
-        <p className="mt-4 font-sans text-[11px] uppercase tracking-widest text-ink/60">
-          {error}
-        </p>
-      ) : null}
+      {error ? <p className={`mt-4 ${errorClass}`}>{error}</p> : null}
       <button
         type="submit"
-        disabled={submitting}
-        className="mt-8 font-sans text-[11px] uppercase tracking-widest text-ink underline underline-offset-4 disabled:text-ink/40"
+        disabled={submitting || !password}
+        className={`mt-4 w-full ${primaryButtonClass}`}
       >
-        {submitting ? "Vérification…" : "Entrer"}
+        {submitting ? "Vérification…" : "Se connecter"}
       </button>
     </form>
   );

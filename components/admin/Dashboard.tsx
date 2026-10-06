@@ -1,33 +1,58 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/products";
 import type { Order } from "@/lib/orders";
 import type { ContactMessage } from "@/lib/contactMessages";
 import type { Keyword } from "@/lib/keywords";
+import type { ShopSettings } from "@/lib/shop-settings";
+import type { HomeBackground } from "@/lib/home-background";
+import type { LegalPage } from "@/lib/site-content";
 import { formatEuros } from "@/lib/format";
+import HomeBackgroundEditor from "./HomeBackgroundEditor";
 import KeywordManager from "./KeywordManager";
-import ProductTagEditor from "./ProductTagEditor";
+import LegalPageEditor from "./LegalPageEditor";
+import ProductForm, { EMPTY_PRODUCT_FORM, type ProductFormValues } from "./ProductForm";
+import ProductRow from "./ProductRow";
+import ShopSettingsManager from "./ShopSettingsManager";
+import {
+  cardClass,
+  checkboxClass,
+  checkboxLabelClass,
+  errorClass,
+  hintClass,
+  inputClass,
+  labelClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+  sectionTitleClass,
+} from "./ui";
 
-const inputClass =
-  "mt-2 w-full border-0 border-b border-ink/20 bg-transparent py-2 font-serif text-lg text-ink outline-none focus:border-ink";
-const labelClass = "font-sans text-[11px] uppercase tracking-widest text-ink/50";
+type Tab = "pieces" | "commandes" | "messages" | "site" | "reglages";
+const TABS: Tab[] = ["pieces", "commandes", "messages", "site", "reglages"];
 
-export default function Dashboard({ initialProducts }: { initialProducts: Product[] }) {
+const shippingZoneLabel = (zone: Order["shippingZone"]) => (zone === "FR" ? "France" : "Belgique");
+
+export default function Dashboard({
+  initialProducts,
+  initialShopSettings,
+  initialHomeBackground,
+  initialLegalPage,
+}: {
+  initialProducts: Product[];
+  initialShopSettings: ShopSettings;
+  initialHomeBackground: HomeBackground;
+  initialLegalPage: LegalPage;
+}) {
   const router = useRouter();
+  const [tab, setTab] = useState<Tab>("pieces");
+
   const [products, setProducts] = useState(initialProducts);
-  const [form, setForm] = useState({
-    title: "",
-    subtitle: "",
-    description: "",
-    imageUrl: "",
-    priceEuros: "",
-    collection: "",
-  });
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [createdTitle, setCreatedTitle] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [savingProductId, setSavingProductId] = useState<string | null>(null);
+  const [productErrors, setProductErrors] = useState<Record<string, string>>({});
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -39,7 +64,25 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [keywordsLoading, setKeywordsLoading] = useState(true);
 
+  // The server saves products as a read-modify-write of the whole catalogue,
+  // so two requests in flight at once could overwrite each other. Chaining
+  // every product mutation through one queue keeps them strictly sequential.
+  const productQueue = useRef<Promise<unknown>>(Promise.resolve());
+  function enqueue<T>(task: () => Promise<T>): Promise<T> {
+    const run = productQueue.current.then(task, task);
+    productQueue.current = run.catch(() => undefined);
+    return run;
+  }
+
   useEffect(() => {
+    // Restore the tab from the URL, and follow back/forward or edited #hashes.
+    function syncTabFromHash() {
+      const fromHash = window.location.hash.slice(1) as Tab;
+      setTab(TABS.includes(fromHash) ? fromHash : "pieces");
+    }
+    syncTabFromHash();
+    window.addEventListener("hashchange", syncTabFromHash);
+
     fetch("/api/orders")
       .then((res) => res.json())
       .then(({ orders }: { orders: Order[] }) => {
@@ -60,45 +103,88 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
         setKeywords(keywords ?? []);
         setKeywordsLoading(false);
       });
+
+    return () => window.removeEventListener("hashchange", syncTabFromHash);
   }, []);
 
-  async function handleCreate(event: React.FormEvent) {
-    event.preventDefault();
-    setSubmitting(true);
-    setError(null);
-
-    const res = await fetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-
-    setSubmitting(false);
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "Impossible de créer la pièce.");
-      return;
-    }
-
-    const { product } = await res.json();
-    setProducts((prev) => [...prev, product]);
-    setForm({
-      title: "",
-      subtitle: "",
-      description: "",
-      imageUrl: "",
-      priceEuros: "",
-      collection: "",
-    });
+  function selectTab(next: Tab) {
+    setTab(next);
+    window.history.pushState(null, "", `#${next}`);
   }
 
-  async function handleDelete(id: string) {
-    setDeletingId(id);
-    const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
-    setDeletingId(null);
+  async function handleCreate(values: ProductFormValues): Promise<string | null> {
+    setCreatedTitle(null);
+    const res = await enqueue(() =>
+      fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      })
+    );
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return body.error ?? "Impossible d’ajouter la pièce.";
+
+    setProducts((prev) => [...prev, body.product]);
+    setCreatedTitle(body.product.title);
+    setAddOpen(false);
+    // On a phone the form collapses under your thumb; jump back up to the confirmation.
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return null;
+  }
+
+  async function handleEdit(product: Product, values: ProductFormValues): Promise<string | null> {
+    const res = await enqueue(() =>
+      fetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      })
+    );
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return body.error ?? "L’enregistrement a échoué. Réessayez.";
+
+    setProducts((prev) => prev.map((p) => (p.id === product.id ? body.product : p)));
+    return null;
+  }
+
+  async function updateProduct(product: Product, patch: Partial<Product>) {
+    setSavingProductId(product.id);
+    setProductErrors((prev) => ({ ...prev, [product.id]: "" }));
+    setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, ...patch } : p)));
+
+    const res = await enqueue(() =>
+      fetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      })
+    );
+
+    setSavingProductId(null);
+    if (!res.ok) {
+      setProducts((prev) => prev.map((p) => (p.id === product.id ? product : p)));
+      setProductErrors((prev) => ({ ...prev, [product.id]: "L’enregistrement a échoué. Réessayez." }));
+    }
+  }
+
+  function toggleProductKeyword(product: Product, keywordId: string) {
+    const keywords = product.keywords.includes(keywordId)
+      ? product.keywords.filter((k) => k !== keywordId)
+      : [...product.keywords, keywordId];
+    updateProduct(product, { keywords });
+  }
+
+  async function handleDelete(product: Product) {
+    if (!window.confirm(`Supprimer « ${product.title} » du catalogue ? Cette action est définitive.`)) {
+      return;
+    }
+    setSavingProductId(product.id);
+    const res = await enqueue(() => fetch(`/api/products/${product.id}`, { method: "DELETE" }));
+    setSavingProductId(null);
     if (res.ok) {
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setProducts((prev) => prev.filter((p) => p.id !== product.id));
+    } else {
+      setProductErrors((prev) => ({ ...prev, [product.id]: "La suppression a échoué. Réessayez." }));
     }
   }
 
@@ -139,23 +225,11 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
   }
 
   async function handleDeleteKeyword(id: string) {
-    const res = await fetch(`/api/keywords/${id}`, { method: "DELETE" });
+    // Also rewrites every product (cascade), so it goes through the product queue.
+    const res = await enqueue(() => fetch(`/api/keywords/${id}`, { method: "DELETE" }));
     if (res.ok) {
       setKeywords((prev) => prev.filter((k) => k.id !== id));
       setProducts((prev) => prev.map((p) => ({ ...p, keywords: p.keywords.filter((k) => k !== id) })));
-    }
-  }
-
-  async function handleUpdateProductKeywords(productId: string, keywordIds: string[]) {
-    const res = await fetch(`/api/products/${productId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ keywords: keywordIds }),
-    });
-    if (res.ok) {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === productId ? { ...p, keywords: keywordIds } : p))
-      );
     }
   }
 
@@ -165,252 +239,254 @@ export default function Dashboard({ initialProducts }: { initialProducts: Produc
     router.refresh();
   }
 
+  const pendingOrders = orders.filter((o) => o.status === "paid");
+  const shippedOrders = orders.filter((o) => o.status === "shipped");
+
+  // Short names + a count badge, so all four tabs fit a 2×2 grid on phones.
+  const tabs: Record<Tab, { name: string; count: number | null; alert?: boolean }> = {
+    pieces: { name: "Pièces", count: products.length },
+    commandes: {
+      name: "Commandes",
+      count: ordersLoading ? null : pendingOrders.length,
+      alert: pendingOrders.length > 0,
+    },
+    messages: { name: "Messages", count: messagesLoading ? null : messages.length },
+    site: { name: "Site", count: null },
+    reglages: { name: "Réglages", count: null },
+  };
+
   return (
-    <div className="grid-container py-16 md:py-24">
-      <div className="grid-matrix">
-        <div className="flex items-center justify-between md:col-span-12">
-          <h1 className="font-serif text-2xl tracking-wide">Tableau de bord</h1>
-          <button
-            onClick={handleLogout}
-            className="font-sans text-[11px] uppercase tracking-widest text-ink/50 underline underline-offset-4 hover:text-ink"
-          >
-            Se déconnecter
-          </button>
+    <div className="min-h-screen bg-ink/[0.03] font-ui">
+      <header className="border-b border-ink/10 bg-white">
+        <div className="grid-container flex flex-wrap items-center justify-between gap-4 py-4">
+          <h1 className="text-xl font-semibold text-ink">Administration</h1>
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
+            <a href="/" target="_blank" rel="noreferrer" className={secondaryButtonClass}>
+              Voir le site ↗
+            </a>
+            <button onClick={handleLogout} className={secondaryButtonClass}>
+              Se déconnecter
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="grid-matrix mt-16 md:mt-24">
-        <form onSubmit={handleCreate} className="md:col-span-4">
-          <h2 className={labelClass}>Nouvelle pièce</h2>
-
-          <label className={`mt-8 block ${labelClass}`}>Titre</label>
-          <input
-            required
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className={inputClass}
-          />
-
-          <label className={`mt-8 block ${labelClass}`}>Sous-titre / année</label>
-          <input
-            value={form.subtitle}
-            onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
-            className={inputClass}
-            placeholder="Grès — 2026"
-          />
-
-          <label className={`mt-8 block ${labelClass}`}>Prix (€)</label>
-          <input
-            required
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.priceEuros}
-            onChange={(e) => setForm({ ...form, priceEuros: e.target.value })}
-            className={inputClass}
-            placeholder="180.00"
-          />
-
-          <label className={`mt-8 block ${labelClass}`}>Collection</label>
-          <input
-            value={form.collection}
-            onChange={(e) => setForm({ ...form, collection: e.target.value })}
-            className={inputClass}
-            placeholder="Grès"
-          />
-
-          <label className={`mt-8 block ${labelClass}`}>Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={4}
-            className={`${inputClass} resize-none`}
-          />
-
-          <label className={`mt-8 block ${labelClass}`}>URL de l&rsquo;image</label>
-          <input
-            value={form.imageUrl}
-            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-            className={inputClass}
-            placeholder="https://…"
-          />
-
-          {error ? <p className={`mt-4 ${labelClass}`}>{error}</p> : null}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="mt-8 font-sans text-[11px] uppercase tracking-widest text-ink underline underline-offset-4 disabled:text-ink/40"
-          >
-            {submitting ? "Ajout…" : "Ajouter au catalogue"}
-          </button>
-        </form>
-
-        <div className="mt-16 md:col-start-6 md:col-span-7 md:mt-0">
-          <h2 className={labelClass}>Catalogue actif ({products.length})</h2>
-
-          <ul className="mt-8 flex flex-col gap-y-8">
-            {products.map((product) => (
-              <li
-                key={product.id}
-                className="flex items-start justify-between gap-8 border-b border-ink/10 pb-8"
+        <nav className="grid-container grid grid-cols-2 gap-2 pb-4 sm:flex sm:flex-wrap">
+          {TABS.map((t) => {
+            const { name, count, alert } = tabs[t];
+            const active = tab === t;
+            return (
+              <button
+                key={t}
+                onClick={() => selectTab(t)}
+                aria-current={active ? "page" : undefined}
+                className={`flex items-center justify-center gap-2 rounded px-4 py-2 text-sm font-medium transition-colors last:col-span-2 ${
+                  active ? "bg-ink text-canvas" : "bg-ink/5 text-ink/70 hover:text-ink sm:bg-transparent sm:hover:bg-ink/5"
+                }`}
               >
-                <div>
-                  <p className="font-serif text-xl">
-                    {product.title}
-                    {product.sold ? (
-                      <span className="ml-4 font-sans text-[11px] uppercase tracking-widest text-ink/40">
-                        Vendu
-                      </span>
-                    ) : null}
-                  </p>
-                  <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
-                    {product.subtitle}
-                    {product.collection ? ` — ${product.collection}` : ""}
-                  </p>
-                  <p className="mt-2 font-serif text-base">{formatEuros(product.priceCents)}</p>
-                  <ProductTagEditor
-                    productKeywordIds={product.keywords}
-                    allKeywords={keywords}
-                    onChange={(ids) => handleUpdateProductKeywords(product.id, ids)}
-                  />
-                </div>
-                <button
-                  onClick={() => handleDelete(product.id)}
-                  disabled={deletingId === product.id}
-                  className="shrink-0 font-sans text-[11px] uppercase tracking-widest text-ink/50 underline underline-offset-4 hover:text-ink disabled:text-ink/20"
-                >
-                  {deletingId === product.id ? "Suppression…" : "Supprimer"}
-                </button>
-              </li>
-            ))}
-            {products.length === 0 ? (
-              <li className={labelClass}>Aucune pièce pour le moment.</li>
+                {name}
+                {count !== null ? (
+                  <span
+                    className={`rounded-full px-2 text-xs ${
+                      alert
+                        ? "bg-red-700 text-white"
+                        : active
+                          ? "bg-canvas/20 text-canvas"
+                          : "bg-ink/10 text-ink/70"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </nav>
+      </header>
+
+      <main className="grid-container py-8 md:py-12">
+        {/* Tabs stay mounted (just hidden) so their state survives switching. */}
+        <div className={`grid-matrix items-start ${tab === "pieces" ? "" : "hidden"}`}>
+            {/* Phones: the form opens from a button so the list isn't buried
+                under it. Desktop: always open in the left column. */}
+            {!addOpen ? (
+              <button
+                onClick={() => {
+                  setAddOpen(true);
+                  setCreatedTitle(null);
+                }}
+                className={`w-full md:hidden ${primaryButtonClass}`}
+              >
+                + Ajouter une pièce
+              </button>
             ) : null}
-          </ul>
-        </div>
-      </div>
+            <section className={`${cardClass} md:col-span-4 ${addOpen ? "" : "hidden md:block"}`}>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className={sectionTitleClass}>Ajouter une pièce</h2>
+                <button
+                  onClick={() => setAddOpen(false)}
+                  className={`md:hidden ${secondaryButtonClass}`}
+                >
+                  Fermer
+                </button>
+              </div>
+              <div className="mt-2">
+                <ProductForm
+                  initialValues={EMPTY_PRODUCT_FORM}
+                  submitLabel="Ajouter la pièce"
+                  submittingLabel="Ajout en cours…"
+                  onSubmit={handleCreate}
+                  resetOnSuccess
+                />
+              </div>
+            </section>
 
-      <div className="grid-matrix mt-16 md:mt-24">
-        <div className="md:col-span-4">
-          <KeywordManager
-            keywords={keywords}
-            loading={keywordsLoading}
-            onCreate={handleCreateKeyword}
-            onRename={handleRenameKeyword}
-            onDelete={handleDeleteKeyword}
-          />
-        </div>
-      </div>
+            <div className="mt-4 md:col-start-5 md:col-span-8 md:mt-0">
+              {createdTitle ? (
+                <p
+                  role="status"
+                  className="mb-4 rounded border border-green-800/20 bg-green-50 p-4 text-sm text-green-800"
+                >
+                  « {createdTitle} » a été ajoutée. Elle apparaît en haut de la liste.
+                </p>
+              ) : null}
+              <h2 className={sectionTitleClass}>Vos pièces</h2>
+              <p className={`mt-2 ${hintClass}`}>
+                Les changements sont enregistrés dès que vous cochez une case.
+              </p>
+              <ul className="mt-4 flex flex-col gap-4">
+                {/* Newest first: the piece just posted is the one you'll want to check. */}
+                {[...products].reverse().map((product) => (
+                  <ProductRow
+                    key={product.id}
+                    product={product}
+                    keywords={keywords}
+                    saving={savingProductId === product.id}
+                    error={productErrors[product.id] || null}
+                    onToggleDescription={() =>
+                      updateProduct(product, { showDescription: !product.showDescription })
+                    }
+                    onToggleKeyword={(keywordId) => toggleProductKeyword(product, keywordId)}
+                    onEdit={(values) => handleEdit(product, values)}
+                    onDelete={() => handleDelete(product)}
+                  />
+                ))}
+                {products.length === 0 ? (
+                  <li className={`${cardClass} ${hintClass}`}>
+                    Aucune pièce pour le moment. Ajoutez-en une avec le formulaire.
+                  </li>
+                ) : null}
+              </ul>
+            </div>
+          </div>
 
-      <div className="grid-matrix mt-16 md:mt-24">
-        <div className="md:col-span-12">
-          <h2 className={labelClass}>
-            Commandes en cours{" "}
-            {ordersLoading ? "" : `(${orders.filter((o) => o.status === "paid").length})`}
-          </h2>
-
-          <ul className="mt-8 flex flex-col gap-y-8">
-            {orders
-              .filter((order) => order.status === "paid")
-              .map((order) => (
-                <li key={order.id} className="border-b border-ink/10 pb-8">
-                  <div className="flex flex-wrap items-start justify-between gap-8">
-                    <div>
-                      <p className="font-serif text-lg">
-                        {order.items.map((i) => i.title).join(", ")}
-                      </p>
-                      <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
-                        {order.customerName || order.customerEmail} —{" "}
-                        {new Date(order.createdAt).toLocaleDateString("fr-FR")}
-                      </p>
-                      <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/40">
-                        Expédier vers : {order.shippingZone === "FR" ? "France" : "Belgique"}
-                      </p>
-                      <p className="mt-2 font-sans text-sm text-ink/70">{order.shippingAddress}</p>
-                      <p className="mt-2 font-serif text-base">{formatEuros(order.totalCents)}</p>
-                    </div>
+        <div className={`grid-matrix items-start ${tab === "commandes" ? "" : "hidden"}`}>
+            <section className="md:col-span-6">
+              <h2 className={sectionTitleClass}>À expédier ({pendingOrders.length})</h2>
+              <ul className="mt-4 flex flex-col gap-4">
+                {pendingOrders.map((order) => (
+                  <li key={order.id} className={cardClass}>
+                    <p className="text-base font-semibold text-ink">
+                      {order.items.map((i) => i.title).join(", ")}
+                    </p>
+                    <p className={`mt-2 ${hintClass}`}>
+                      {order.customerName || order.customerEmail} · commandé le{" "}
+                      {new Date(order.createdAt).toLocaleDateString("fr-FR")} ·{" "}
+                      {formatEuros(order.totalCents)}
+                    </p>
+                    <p className="mt-2 text-sm text-ink">
+                      <span className="font-medium">Adresse ({shippingZoneLabel(order.shippingZone)}) :</span>{" "}
+                      {order.shippingAddress}
+                    </p>
                     <button
                       onClick={() => handleMarkShipped(order.id)}
                       disabled={shippingId === order.id}
-                      className="shrink-0 font-sans text-[11px] uppercase tracking-widest text-ink underline underline-offset-4 disabled:text-ink/40"
+                      className={`mt-4 ${primaryButtonClass}`}
                     >
-                      {shippingId === order.id ? "…" : "Marquer comme expédiée"}
+                      {shippingId === order.id ? "Enregistrement…" : "Marquer comme expédiée"}
                     </button>
-                  </div>
-                </li>
-              ))}
-            {!ordersLoading && orders.filter((o) => o.status === "paid").length === 0 ? (
-              <li className={labelClass}>Aucune commande en attente d&rsquo;expédition.</li>
-            ) : null}
-          </ul>
-        </div>
-      </div>
+                  </li>
+                ))}
+                {ordersLoading ? <li className={hintClass}>Chargement…</li> : null}
+                {!ordersLoading && pendingOrders.length === 0 ? (
+                  <li className={`${cardClass} ${hintClass}`}>Aucune commande en attente d&rsquo;expédition.</li>
+                ) : null}
+              </ul>
+            </section>
 
-      <div className="grid-matrix mt-16 md:mt-24">
-        <div className="md:col-span-12">
-          <h2 className={labelClass}>
-            Commandes expédiées{" "}
-            {ordersLoading ? "" : `(${orders.filter((o) => o.status === "shipped").length})`}
-          </h2>
-
-          <ul className="mt-8 flex flex-col gap-y-8">
-            {orders
-              .filter((order) => order.status === "shipped")
-              .map((order) => (
-                <li key={order.id} className="border-b border-ink/10 pb-8">
-                  <p className="font-serif text-lg">
-                    {order.items.map((i) => i.title).join(", ")}
-                  </p>
-                  <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
-                    {order.customerName || order.customerEmail} —{" "}
-                    {new Date(order.createdAt).toLocaleDateString("fr-FR")}
-                  </p>
-                  <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/40">
-                    Expédiée vers : {order.shippingZone === "FR" ? "France" : "Belgique"}
-                  </p>
-                  <p className="mt-2 font-sans text-sm text-ink/70">{order.shippingAddress}</p>
-                </li>
-              ))}
-            {!ordersLoading && orders.filter((o) => o.status === "shipped").length === 0 ? (
-              <li className={labelClass}>Aucune commande expédiée pour le moment.</li>
-            ) : null}
-          </ul>
-        </div>
-      </div>
-
-      <div className="grid-matrix mt-16 md:mt-24">
-        <div className="md:col-span-12">
-          <h2 className={labelClass}>
-            Messages {messagesLoading ? "" : `(${messages.length})`}
-          </h2>
-
-          <ul className="mt-8 flex flex-col gap-y-8">
-            {messages.map((msg) => (
-              <li key={msg.id} className="border-b border-ink/10 pb-8">
-                <div className="flex flex-wrap items-start justify-between gap-8">
-                  <div>
-                    <p className="font-serif text-lg">{msg.name}</p>
-                    <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
-                      {msg.email} — {new Date(msg.createdAt).toLocaleDateString("fr-FR")}
+            <section className="mt-8 md:col-start-7 md:col-span-6 md:mt-0">
+              <h2 className={sectionTitleClass}>Expédiées ({shippedOrders.length})</h2>
+              <ul className="mt-4 flex flex-col gap-4">
+                {shippedOrders.map((order) => (
+                  <li key={order.id} className={cardClass}>
+                    <p className="text-base font-semibold text-ink">
+                      {order.items.map((i) => i.title).join(", ")}
                     </p>
-                    <p className="mt-2 max-w-xl font-sans text-sm text-ink/70">{msg.message}</p>
-                  </div>
-                  <a
-                    href={`mailto:${msg.email}`}
-                    className="shrink-0 font-sans text-[11px] uppercase tracking-widest text-ink underline underline-offset-4 hover:text-ink/70"
-                  >
-                    Répondre
-                  </a>
-                </div>
-              </li>
-            ))}
-            {!messagesLoading && messages.length === 0 ? (
-              <li className={labelClass}>Aucun message pour le moment.</li>
-            ) : null}
-          </ul>
+                    <p className={`mt-2 ${hintClass}`}>
+                      {order.customerName || order.customerEmail} · commandé le{" "}
+                      {new Date(order.createdAt).toLocaleDateString("fr-FR")} ·{" "}
+                      {shippingZoneLabel(order.shippingZone)}
+                    </p>
+                    <p className="mt-2 text-sm text-ink/70">{order.shippingAddress}</p>
+                  </li>
+                ))}
+                {!ordersLoading && shippedOrders.length === 0 ? (
+                  <li className={`${cardClass} ${hintClass}`}>Aucune commande expédiée pour le moment.</li>
+                ) : null}
+              </ul>
+            </section>
+          </div>
+
+        <div className={`grid-matrix items-start ${tab === "messages" ? "" : "hidden"}`}>
+            <section className="md:col-span-8">
+              <h2 className={sectionTitleClass}>Messages reçus ({messages.length})</h2>
+              <ul className="mt-4 flex flex-col gap-4">
+                {messages.map((msg) => (
+                  <li key={msg.id} className={cardClass}>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="text-base font-semibold text-ink">{msg.name}</p>
+                        <p className={hintClass}>
+                          {msg.email} · {new Date(msg.createdAt).toLocaleDateString("fr-FR")}
+                        </p>
+                      </div>
+                      <a href={`mailto:${msg.email}`} className={secondaryButtonClass}>
+                        Répondre par e-mail
+                      </a>
+                    </div>
+                    <p className="mt-4 whitespace-pre-line text-sm text-ink/80">{msg.message}</p>
+                  </li>
+                ))}
+                {messagesLoading ? <li className={hintClass}>Chargement…</li> : null}
+                {!messagesLoading && messages.length === 0 ? (
+                  <li className={`${cardClass} ${hintClass}`}>Aucun message pour le moment.</li>
+                ) : null}
+              </ul>
+            </section>
+          </div>
+
+        <div className={`grid-matrix items-start ${tab === "site" ? "" : "hidden"}`}>
+          <div className="md:col-span-6">
+            <HomeBackgroundEditor initialBackground={initialHomeBackground} />
+          </div>
+          <div className="mt-4 md:col-start-7 md:col-span-6 md:mt-0">
+            <LegalPageEditor initialPage={initialLegalPage} />
+          </div>
         </div>
-      </div>
+
+        <div className={`grid-matrix items-start ${tab === "reglages" ? "" : "hidden"}`}>
+            <div className="md:col-span-6">
+              <ShopSettingsManager initialSettings={initialShopSettings} />
+            </div>
+            <div className="mt-8 md:col-start-7 md:col-span-6 md:mt-0">
+              <KeywordManager
+                keywords={keywords}
+                loading={keywordsLoading}
+                onCreate={handleCreateKeyword}
+                onRename={handleRenameKeyword}
+                onDelete={handleDeleteKeyword}
+              />
+            </div>
+          </div>
+      </main>
     </div>
   );
 }
