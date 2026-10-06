@@ -13,10 +13,13 @@ export type Measures = Record<DimensionKey | "weightG", number | null>;
 
 const number = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
-export const formatCm = (cm: number) => `${number.format(cm)} cm`;
+// Non-breaking spaces (\u00A0) keep a number with its unit ("24 cm", "Ø 12 cm")
+// so narrow layouts only ever wrap between measures.
+const NBSP = "\u00A0";
+export const formatCm = (cm: number) => `${number.format(cm)}${NBSP}cm`;
 
 export function formatWeight(grams: number): string {
-  return grams >= 1000 ? `${number.format(grams / 1000)} kg` : `${number.format(grams)} g`;
+  return grams >= 1000 ? `${number.format(grams / 1000)}${NBSP}kg` : `${number.format(grams)}${NBSP}g`;
 }
 
 /** Labelled rows for the product page's "Caractéristiques" — filled ones only. */
@@ -31,7 +34,7 @@ export function measureRows(measures: Measures): { label: string; value: string 
 /** Compact size line for shop cards, e.g. "H 24 cm · Ø 12 cm" (no weight). */
 export function sizeLine(measures: Measures): string {
   return DIMENSION_FIELDS.filter(({ key }) => measures[key] !== null)
-    .map(({ key, short }) => `${short} ${formatCm(measures[key]!)}`)
+    .map(({ key, short }) => `${short}${NBSP}${formatCm(measures[key]!)}`)
     .join(" · ");
 }
 
