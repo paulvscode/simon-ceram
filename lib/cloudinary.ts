@@ -6,15 +6,38 @@ import { createHash } from "crypto";
 
 type CloudinaryConfig = { cloudName: string; apiKey: string; apiSecret: string };
 
+const REQUIRED = ["CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"] as const;
+
+// Values pasted into a hosting dashboard often keep the quotes or a trailing
+// space from a .env file; neither is ever part of a real Cloudinary value.
+function clean(value: string | undefined): string {
+  return (value ?? "").trim().replace(/^["']|["']$/g, "").trim();
+}
+
 export function cloudinaryConfig(): CloudinaryConfig | null {
-  const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_URL } =
-    process.env;
-  if (CLOUDINARY_CLOUD_NAME && CLOUDINARY_API_KEY && CLOUDINARY_API_SECRET) {
-    return { cloudName: CLOUDINARY_CLOUD_NAME, apiKey: CLOUDINARY_API_KEY, apiSecret: CLOUDINARY_API_SECRET };
-  }
+  const [cloudName, apiKey, apiSecret] = REQUIRED.map((name) => clean(process.env[name]));
+  if (cloudName && apiKey && apiSecret) return { cloudName, apiKey, apiSecret };
   // The dashboard also offers a single CLOUDINARY_URL=cloudinary://key:secret@cloud
-  const match = CLOUDINARY_URL?.match(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/);
+  const match = clean(process.env.CLOUDINARY_URL).match(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/);
   return match ? { apiKey: match[1], apiSecret: match[2], cloudName: match[3] } : null;
+}
+
+/**
+ * For the "not configured" message: which required names are missing, and
+ * which Cloudinary-looking names ARE present (a typo, lowercase, a stray
+ * space). Variable names only — never values.
+ */
+export function cloudinaryConfigDiagnosis(): string {
+  const missing = REQUIRED.filter((name) => !clean(process.env[name]));
+  const lookalikes = Object.keys(process.env).filter(
+    (name) => /cloudinary/i.test(name) && !(REQUIRED as readonly string[]).includes(name)
+  );
+  return [
+    missing.length ? `manquantes sur le serveur : ${missing.join(", ")}` : "",
+    lookalikes.length ? `noms trouvés qui ressemblent : ${lookalikes.map((n) => JSON.stringify(n)).join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join(" — ");
 }
 
 // Cloudinary's documented scheme: every signed param except file, api_key,

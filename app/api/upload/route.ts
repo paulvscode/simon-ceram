@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { cloudinaryConfig, signParams, uploadUrl } from "@/lib/cloudinary";
+import { cloudinaryConfig, cloudinaryConfigDiagnosis, signParams, uploadUrl } from "@/lib/cloudinary";
 import { isValidSession, SESSION_COOKIE } from "@/lib/session";
 
 // Signed browser uploads: the admin's browser sends the photo straight to
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   const config = cloudinaryConfig();
   if (!config) {
     return NextResponse.json(
-      { error: "Téléversement non configuré (identifiants Cloudinary manquants)." },
+      { error: `Téléversement non configuré (${cloudinaryConfigDiagnosis()}).` },
       { status: 503 }
     );
   }
