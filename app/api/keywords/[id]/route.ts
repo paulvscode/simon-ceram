@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { deleteKeyword, renameKeyword } from "@/lib/keywords";
+import { deleteKeyword, PermanentKeywordError, renameKeyword } from "@/lib/keywords";
 import { removeKeywordFromAllProducts } from "@/lib/products";
 import { isValidSession, SESSION_COOKIE } from "@/lib/session";
 
@@ -19,7 +19,14 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  await renameKeyword(id, label);
+  try {
+    await renameKeyword(id, label);
+  } catch (error) {
+    if (error instanceof PermanentKeywordError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    throw error;
+  }
   return NextResponse.json({ ok: true });
 }
 
@@ -33,7 +40,14 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  await deleteKeyword(id);
+  try {
+    await deleteKeyword(id);
+  } catch (error) {
+    if (error instanceof PermanentKeywordError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    throw error;
+  }
   await removeKeywordFromAllProducts(id);
   return NextResponse.json({ ok: true });
 }

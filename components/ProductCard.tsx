@@ -3,7 +3,7 @@
 import type { Product } from "@/lib/products";
 import { useCart } from "@/lib/cart-context";
 import { formatEuros } from "@/lib/format";
-import { squareImageUrl } from "@/lib/product-image";
+import { productImageUrl } from "@/lib/product-image";
 
 export default function ProductCard({ product }: { product: Product }) {
   const { isInCart, addToCart, removeFromCart } = useCart();
@@ -17,7 +17,7 @@ export default function ProductCard({ product }: { product: Product }) {
         {product.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={squareImageUrl(product.imageUrl)}
+            src={productImageUrl(product.imageUrl)}
             alt={product.title}
             loading="lazy"
             className={`block h-full w-full object-contain ${product.sold ? "grayscale" : ""}`}
@@ -27,7 +27,7 @@ export default function ProductCard({ product }: { product: Product }) {
           // Same square as the main image; cross-fades in over it on hover.
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={squareImageUrl(product.hoverImageUrl)}
+            src={productImageUrl(product.hoverImageUrl)}
             alt=""
             aria-hidden
             loading="lazy"

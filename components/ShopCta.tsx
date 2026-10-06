@@ -1,6 +1,6 @@
 /**
  * Homepage call-to-action into the full catalog, placed right after the
- * Selected Works grid. 3 / 6 / 3 column split per claude.MD §1.
+ * Vitrine grid. 3 / 6 / 3 column split per claude.MD §1.
  */
 export default function ShopCta() {
   return (

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import ImageUploadField from "./ImageUploadField";
-import OnlineSwitch from "./OnlineSwitch";
+import { OnlineToggle } from "./ToggleRow";
 import type { Product } from "@/lib/products";
 import {
   checkboxClass,
@@ -186,7 +186,7 @@ export default function ProductForm({
       <div className="mt-4">
         <p className={labelClass}>Visibilité</p>
         <div className="mt-2">
-          <OnlineSwitch online={form.online} onChange={(online) => set("online", online)} />
+          <OnlineToggle online={form.online} onChange={(online) => set("online", online)} />
         </div>
       </div>
 

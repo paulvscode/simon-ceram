@@ -1,7 +1,7 @@
 import ProductCard from "@/components/ProductCard";
 import type { Product } from "@/lib/products";
 
-// Shared between /shop and the homepage's "Selected Works" section.
+// Shared between /shop and the homepage's "Vitrine" section.
 // Every picture is the same square (see lib/product-image.ts), so this is a
 // regular grid read row by row: 1 column on the narrowest phones, 2 from
 // `sm`, 3 from `lg`, fixed gutters per claude.MD §1.

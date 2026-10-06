@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Product } from "@/lib/products";
 import type { Keyword } from "@/lib/keywords";
 import { formatEuros } from "@/lib/format";
-import OnlineSwitch from "./OnlineSwitch";
+import ToggleRow, { OnlineToggle } from "./ToggleRow";
 import ProductForm, { productToFormValues, type ProductFormValues } from "./ProductForm";
 import {
   cardClass,
@@ -24,6 +24,9 @@ export default function ProductRow({
   error,
   onToggleDescription,
   onToggleOnline,
+  featured,
+  featuredDisabled,
+  onToggleFeatured,
   onToggleKeyword,
   onEdit,
   onDelete,
@@ -34,6 +37,10 @@ export default function ProductRow({
   error: string | null;
   onToggleDescription: () => void;
   onToggleOnline: (online: boolean) => void;
+  // Tagged with the permanent Vitrine keyword (see lib/vitrine.ts).
+  featured: boolean;
+  featuredDisabled: boolean;
+  onToggleFeatured: (featured: boolean) => void;
   onToggleKeyword: (keywordId: string) => void;
   // Resolves to an error message, or null on success.
   onEdit: (values: ProductFormValues) => Promise<string | null>;
@@ -66,9 +73,20 @@ export default function ProductRow({
 
   return (
     <li className={`${cardClass} ${product.online ? "" : "border-dashed bg-ink/[0.02]"}`}>
-      {/* First thing on the card: the most-used control, full width. */}
-      <div className="mb-4">
-        <OnlineSwitch online={product.online} disabled={saving} onChange={onToggleOnline} />
+      {/* First on the card: the two most-used controls, full width. */}
+      <div className="mb-4 flex flex-col gap-2">
+        <OnlineToggle online={product.online} disabled={saving} onChange={onToggleOnline} />
+        <ToggleRow
+          checked={featured}
+          onChange={onToggleFeatured}
+          disabled={saving || featuredDisabled}
+          tone="ink"
+          label="Afficher sur la page d’accueil"
+          onTitle="Page d’accueil"
+          offTitle="Pas sur la page d’accueil"
+          onHint={product.online ? "Dans la « Vitrine » de l’accueil" : "Apparaîtra sur l’accueil une fois en ligne"}
+          offHint="Visible seulement dans la boutique"
+        />
       </div>
       {/* Phones: buttons drop to their own full-width row under the title. */}
       <div className="flex flex-col gap-4 sm:flex-row">

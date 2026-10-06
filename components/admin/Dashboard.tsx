@@ -11,6 +11,7 @@ import type { HomeBackground } from "@/lib/home-background";
 import type { LegalPage } from "@/lib/site-content";
 import type { ProcessSection } from "@/lib/process-section";
 import type { HeroText } from "@/lib/hero-text";
+import { isVitrine } from "@/lib/vitrine";
 import { formatEuros } from "@/lib/format";
 import HeroTextEditor from "./HeroTextEditor";
 import HomeBackgroundEditor from "./HomeBackgroundEditor";
@@ -167,6 +168,16 @@ export default function Dashboard({
       setProducts((prev) => prev.map((p) => (p.id === product.id ? product : p)));
       setProductErrors((prev) => ({ ...prev, [product.id]: "L’enregistrement a échoué. Réessayez." }));
     }
+  }
+
+  // "Page d'accueil" = carries the permanent Vitrine keyword (lib/vitrine.ts),
+  // which the keywords API always returns.
+  const vitrineKeyword = keywords.find(isVitrine);
+
+  function toggleFeatured(product: Product, featured: boolean) {
+    if (!vitrineKeyword) return;
+    const others = product.keywords.filter((k) => k !== vitrineKeyword.id);
+    updateProduct(product, { keywords: featured ? [...others, vitrineKeyword.id] : others });
   }
 
   function toggleProductKeyword(product: Product, keywordId: string) {
@@ -370,13 +381,17 @@ export default function Dashboard({
                   <ProductRow
                     key={product.id}
                     product={product}
-                    keywords={keywords}
+                    // The Vitrine tag has its own toggle on the card.
+                    keywords={keywords.filter((k) => !isVitrine(k))}
                     saving={savingProductId === product.id}
                     error={productErrors[product.id] || null}
                     onToggleDescription={() =>
                       updateProduct(product, { showDescription: !product.showDescription })
                     }
                     onToggleOnline={(online) => updateProduct(product, { online })}
+                    featured={!!vitrineKeyword && product.keywords.includes(vitrineKeyword.id)}
+                    featuredDisabled={keywordsLoading || !vitrineKeyword}
+                    onToggleFeatured={(featured) => toggleFeatured(product, featured)}
                     onToggleKeyword={(keywordId) => toggleProductKeyword(product, keywordId)}
                     onEdit={(values) => handleEdit(product, values)}
                     onDelete={() => handleDelete(product)}

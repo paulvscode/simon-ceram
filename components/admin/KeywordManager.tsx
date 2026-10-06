@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Keyword } from "@/lib/keywords";
+import { isVitrine } from "@/lib/vitrine";
 import {
   cardClass,
   dangerButtonClass,
@@ -60,14 +61,21 @@ export default function KeywordManager({
     <section className={cardClass}>
       <h2 className={sectionTitleClass}>Mots-clés</h2>
       <p className={`mt-2 ${hintClass}`}>
-        Servent de filtres sur la page Shop. Le mot-clé « Selected Works » place une pièce sur la
-        page d&rsquo;accueil.
+        Servent de filtres sur la page Shop. « Vitrine » est permanent : il place une pièce sur
+        la page d&rsquo;accueil, via le bouton « Page d&rsquo;accueil » de chaque pièce.
       </p>
 
       <ul className="mt-4 flex flex-col divide-y divide-ink/10">
         {keywords.map((keyword) => (
           <li key={keyword.id} className="py-4 sm:py-2">
-            {editingId === keyword.id ? (
+            {isVitrine(keyword) ? (
+              <div className="flex items-center gap-2">
+                <span className="flex-1 break-words text-base text-ink">{keyword.label}</span>
+                <span className="rounded bg-ink/10 px-2 text-xs font-medium leading-6 text-ink/70">
+                  Permanent
+                </span>
+              </div>
+            ) : editingId === keyword.id ? (
               <form
                 onSubmit={(e) => handleRenameSubmit(e, keyword.id)}
                 className="flex flex-col gap-2 sm:flex-row sm:items-center"
