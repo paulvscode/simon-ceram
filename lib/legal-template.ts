@@ -3,7 +3,7 @@
 // an explicit placeholder the atelier must complete — not legal advice.
 export const LEGAL_TEMPLATE_HTML = `
 <h2>Éditeur du site</h2>
-<p>Le site simon-ceramique.fr est édité par <strong>Atelier Simon</strong> — [À compléter : forme juridique, ex. entreprise individuelle].</p>
+<p>Le site simon-ceramique.fr est édité par <strong>Simon Barraud</strong> — [À compléter : forme juridique, ex. entreprise individuelle].</p>
 <ul>
   <li>Adresse : 12 rue des Tanneurs, Dieulefit</li>
   <li>E-mail : <a href="mailto:atelier@simon-ceramique.fr">atelier@simon-ceramique.fr</a></li>
@@ -17,7 +17,7 @@ export const LEGAL_TEMPLATE_HTML = `
 <p>Le site est hébergé par Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis — <a href="https://vercel.com">vercel.com</a>.</p>
 
 <h2>Propriété intellectuelle</h2>
-<p>L’ensemble des contenus de ce site (textes, photographies, créations) est la propriété exclusive de l’Atelier Simon, sauf mention contraire. Toute reproduction, même partielle, est interdite sans autorisation écrite préalable.</p>
+<p>L’ensemble des contenus de ce site (textes, photographies, créations) est la propriété exclusive de Simon Barraud, sauf mention contraire. Toute reproduction, même partielle, est interdite sans autorisation écrite préalable.</p>
 
 <h2>Données personnelles</h2>
 <p>Les informations transmises via le formulaire de contact ou lors d’une commande (nom, e-mail, adresse de livraison) sont utilisées uniquement pour répondre à vos messages et traiter vos commandes. Elles ne sont jamais cédées à des tiers. Le paiement est assuré par Stripe ; l’atelier n’a jamais accès à vos coordonnées bancaires.</p>

@@ -3,7 +3,7 @@ export default function Footer() {
     <footer className="grid-container bg-canvas py-16">
       <div className="grid-matrix items-end font-sans text-[11px] uppercase tracking-widest text-ink/40">
         <div className="md:col-span-4">
-          <p>Atelier Simon</p>
+          <p>Atelier Simon Barraud</p>
           <p className="mt-2">12 rue des Tanneurs, Dieulefit</p>
           <p className="mt-2">Livraison en France et en Belgique</p>
         </div>
@@ -14,7 +14,7 @@ export default function Footer() {
           <p className="mt-2">atelier@simon-ceramique.fr</p>
         </div>
         <div className="mt-8 md:col-start-10 md:col-span-3 md:mt-0 md:text-right">
-          <p>&copy; {new Date().getFullYear()} Simon Céramique</p>
+          <p>&copy; {new Date().getFullYear()} Simon Barraud</p>
           <a href="/mentions-legales" className="mt-2 block hover:text-ink">
             Mentions légales
           </a>

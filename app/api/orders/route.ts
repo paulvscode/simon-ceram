@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getOrders } from "@/lib/orders";
+import { storageUnavailable } from "@/lib/json-store";
 import { isValidSession, SESSION_COOKIE } from "@/lib/session";
 
 export async function GET() {
@@ -9,6 +10,9 @@ export async function GET() {
     return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
 
-  const orders = await getOrders();
-  return NextResponse.json({ orders });
+  try {
+    return NextResponse.json({ orders: await getOrders() });
+  } catch (error) {
+    return storageUnavailable(error);
+  }
 }

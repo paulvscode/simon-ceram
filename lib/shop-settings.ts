@@ -1,4 +1,4 @@
-import { readLatestJson, writeJsonVersion } from "@/lib/blob-json";
+import { readDocument, updateDocument } from "@/lib/json-store";
 
 export type ShopSettings = {
   showAvailability: boolean;
@@ -18,22 +18,29 @@ export const DEFAULT_SHOP_SETTINGS: ShopSettings = {
   showCollections: true,
 };
 
-const BLOB_PREFIX = "shop-settings/";
-
-export async function getShopSettings(): Promise<ShopSettings> {
-  const stored = await readLatestJson<Partial<ShopSettings>>(BLOB_PREFIX);
-  if (!stored) return DEFAULT_SHOP_SETTINGS;
+function merge(stored: Partial<ShopSettings> | null): ShopSettings {
   // Merge over defaults so a setting added later stays visible until toggled off,
   // and keep only known keys so retired settings don't leak back out.
   const merged = { ...DEFAULT_SHOP_SETTINGS };
   for (const key of SHOP_SETTING_KEYS) {
-    if (typeof stored[key] === "boolean") merged[key] = stored[key];
+    if (typeof stored?.[key] === "boolean") merged[key] = stored[key];
   }
   return merged;
 }
 
+export async function getShopSettings(): Promise<ShopSettings> {
+  try {
+    return merge(await readDocument<Partial<ShopSettings>>("shop-settings"));
+  } catch (error) {
+    // Filters are cosmetic: show them all rather than failing the shop page.
+    console.error("getShopSettings:", error);
+    return DEFAULT_SHOP_SETTINGS;
+  }
+}
+
 export async function updateShopSettings(patch: Partial<ShopSettings>): Promise<ShopSettings> {
-  const settings = { ...(await getShopSettings()), ...patch };
-  await writeJsonVersion(BLOB_PREFIX, "settings.json", settings);
-  return settings;
+  return updateDocument<ShopSettings>("shop-settings", DEFAULT_SHOP_SETTINGS, (current) => ({
+    ...merge(current),
+    ...patch,
+  }));
 }

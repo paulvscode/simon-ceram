@@ -1,58 +1,42 @@
 import { randomUUID } from "crypto";
-import { list, put } from "@vercel/blob";
+import { readDocument, updateDocument } from "@/lib/json-store";
 
 export type Keyword = {
   id: string;
   label: string;
 };
 
-const BLOB_PATHNAME = "keywords.json";
-
-async function findBlobUrl(): Promise<string | null> {
-  const { blobs } = await list({ prefix: BLOB_PATHNAME, limit: 1 });
-  return blobs.find((b) => b.pathname === BLOB_PATHNAME)?.url ?? null;
-}
-
-async function writeAll(keywords: Keyword[]): Promise<void> {
-  await put(BLOB_PATHNAME, JSON.stringify(keywords, null, 2), {
-    access: "public",
-    contentType: "application/json",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    cacheControlMaxAge: 0,
-  });
-}
-
+// Cached read; changes are fresh read-modify-writes (see lib/json-store.ts).
 async function readAll(): Promise<Keyword[]> {
-  const url = await findBlobUrl();
-  if (!url) return [];
-  const res = await fetch(url, { cache: "no-store" });
-  return (await res.json()) as Keyword[];
+  return (await readDocument<Keyword[]>("keywords")) ?? [];
 }
 
 export async function getKeywords(): Promise<Keyword[]> {
   const keywords = await readAll();
-  return keywords.sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  return [...keywords].sort((a, b) => a.label.localeCompare(b.label, "fr"));
 }
 
 export async function createKeyword(label: string): Promise<Keyword> {
-  const keywords = await readAll();
   const trimmed = label.trim();
-  const existing = keywords.find((k) => k.label.toLowerCase() === trimmed.toLowerCase());
-  if (existing) return existing;
-
-  const keyword: Keyword = { id: randomUUID(), label: trimmed };
-  keywords.push(keyword);
-  await writeAll(keywords);
-  return keyword;
+  let result!: Keyword;
+  await updateDocument<Keyword[]>("keywords", [], (keywords) => {
+    const existing = keywords.find((k) => k.label.toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      result = existing;
+      return keywords;
+    }
+    result = { id: randomUUID(), label: trimmed };
+    return [...keywords, result];
+  });
+  return result;
 }
 
 export async function renameKeyword(id: string, label: string): Promise<void> {
-  const keywords = await readAll();
-  await writeAll(keywords.map((k) => (k.id === id ? { ...k, label: label.trim() } : k)));
+  await updateDocument<Keyword[]>("keywords", [], (keywords) =>
+    keywords.map((k) => (k.id === id ? { ...k, label: label.trim() } : k))
+  );
 }
 
 export async function deleteKeyword(id: string): Promise<void> {
-  const keywords = await readAll();
-  await writeAll(keywords.filter((k) => k.id !== id));
+  await updateDocument<Keyword[]>("keywords", [], (keywords) => keywords.filter((k) => k.id !== id));
 }

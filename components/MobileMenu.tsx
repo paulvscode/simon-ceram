@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { NAV_LINKS } from "@/lib/nav-links";
+import Logo from "./Logo";
 
 export default function MobileMenu() {
   const [open, setOpen] = useState(false);
@@ -23,12 +24,8 @@ export default function MobileMenu() {
       {open ? (
         <div className="fixed inset-0 z-[250] flex flex-col bg-canvas">
           <div className="grid-container flex w-full items-center justify-between py-8">
-            <a
-              href="/"
-              onClick={() => setOpen(false)}
-              className="font-serif text-lg tracking-wide"
-            >
-              Simon Céramique
+            <a href="/" onClick={() => setOpen(false)} aria-label="Simon Barraud — accueil">
+              <Logo />
             </a>
             <button
               onClick={() => setOpen(false)}

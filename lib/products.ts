@@ -1,8 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
-import { list } from "@vercel/blob";
-import { readLatestJson, writeJsonVersion } from "@/lib/blob-json";
+import { readDocument, updateDocument } from "@/lib/json-store";
 
 export type Product = {
   id: string;
@@ -21,23 +20,7 @@ export type Product = {
   createdAt: number;
 };
 
-const BLOB_PREFIX = "products/";
-// Products used to live in one overwritten file (stale-read bug, see
-// lib/blob-json.ts). It's still read once as a fallback until the first save.
-const LEGACY_BLOB_PATHNAME = "products.json";
 const SEED_FILE = path.join(process.cwd(), "data", "products.json");
-
-async function readLegacy(): Promise<Partial<Product>[] | null> {
-  const { blobs } = await list({ prefix: LEGACY_BLOB_PATHNAME, limit: 1 });
-  const url = blobs.find((b) => b.pathname === LEGACY_BLOB_PATHNAME)?.url;
-  if (!url) return null;
-  const res = await fetch(url, { cache: "no-store" });
-  return (await res.json()) as Partial<Product>[];
-}
-
-async function writeAll(products: Product[]): Promise<void> {
-  await writeJsonVersion(BLOB_PREFIX, "products.json", products);
-}
 
 // Fills defaults for records written before priceCents/sold/collection/keywords/showDescription/hoverImageUrl existed.
 function normalize(raw: Partial<Product>[]): Product[] {
@@ -57,15 +40,23 @@ function normalize(raw: Partial<Product>[]): Product[] {
   }));
 }
 
-async function readAll(): Promise<Product[]> {
-  const stored = (await readLatestJson<Partial<Product>[]>(BLOB_PREFIX)) ?? (await readLegacy());
-  if (stored) return normalize(stored);
+async function loadSeed(): Promise<Partial<Product>[]> {
+  return JSON.parse(await fs.readFile(SEED_FILE, "utf-8")) as Partial<Product>[];
+}
 
-  // First run: no blob yet — seed it from the bundled seed file.
-  const seedRaw = await fs.readFile(SEED_FILE, "utf-8");
-  const seed = normalize(JSON.parse(seedRaw) as Partial<Product>[]);
-  await writeAll(seed);
-  return seed;
+// Cached (see lib/json-store.ts): page views cost no storage operations.
+// Reads never write — Next forbids cache invalidation during a render — so
+// before anything is stored this serves the bundled seed, and the first admin
+// change persists it (mutateProducts starts from the same seed).
+async function readAll(): Promise<Product[]> {
+  const stored = await readDocument<Partial<Product>[]>("products");
+  return normalize(stored ?? (await loadSeed()));
+}
+
+// Every change goes through one fresh read-modify-write, never the cache.
+// `change` returns null for "nothing to do", which skips the write.
+async function mutateProducts(change: (products: Product[]) => Product[] | null): Promise<void> {
+  await updateDocument<Partial<Product>[]>("products", await loadSeed(), (raw) => change(normalize(raw)) ?? raw);
 }
 
 export async function getProducts(): Promise<Product[]> {
@@ -146,7 +137,6 @@ export function parseProductFields(
 }
 
 export async function addProduct(input: ProductFields): Promise<Product> {
-  const products = await readAll();
   const product: Product = {
     id: randomUUID(),
     ...input,
@@ -154,20 +144,17 @@ export async function addProduct(input: ProductFields): Promise<Product> {
     keywords: [],
     createdAt: Date.now(),
   };
-  products.push(product);
-  await writeAll(products);
+  await mutateProducts((products) => [...products, product]);
   return product;
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  const products = await readAll();
-  await writeAll(products.filter((p) => p.id !== id));
+  await mutateProducts((products) => products.filter((p) => p.id !== id));
 }
 
 export async function markProductsSold(ids: string[]): Promise<void> {
-  const products = await readAll();
   const idSet = new Set(ids);
-  await writeAll(
+  await mutateProducts((products) =>
     products.map((p) => (idSet.has(p.id) ? { ...p, sold: true } : p))
   );
 }
@@ -175,18 +162,21 @@ export async function markProductsSold(ids: string[]): Promise<void> {
 export type ProductPatch = Partial<ProductFields> & { keywords?: string[] };
 
 export async function updateProduct(id: string, patch: ProductPatch): Promise<Product | null> {
-  const products = await readAll();
-  const existing = products.find((p) => p.id === id);
-  if (!existing) return null;
-  const updated = { ...existing, ...patch };
-  await writeAll(products.map((p) => (p.id === id ? updated : p)));
+  let updated: Product | null = null;
+  await mutateProducts((products) => {
+    const existing = products.find((p) => p.id === id);
+    if (!existing) return null;
+    updated = { ...existing, ...patch };
+    return products.map((p) => (p.id === id ? updated! : p));
+  });
   return updated;
 }
 
 // Cascade cleanup when a keyword is deleted from the master list.
 export async function removeKeywordFromAllProducts(keywordId: string): Promise<void> {
-  const products = await readAll();
-  await writeAll(
-    products.map((p) => ({ ...p, keywords: p.keywords.filter((k) => k !== keywordId) }))
+  await mutateProducts((products) =>
+    products.some((p) => p.keywords.includes(keywordId))
+      ? products.map((p) => ({ ...p, keywords: p.keywords.filter((k) => k !== keywordId) }))
+      : null
   );
 }

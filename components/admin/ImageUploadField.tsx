@@ -1,20 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { upload } from "@vercel/blob/client";
+import { uploadImage, UploadError, type UploadFolder } from "./cloudinary-upload";
 import { ImagePreparationError, looksLikeImage, prepareImageForUpload } from "./prepare-image";
 import { errorClass, hintClass, inputClass, labelClass, secondaryButtonClass } from "./ui";
-
-// Keeps the original name readable in the Blob store, minus anything URL-hostile.
-function uploadPathname(folder: string, file: File) {
-  const clean = file.name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9.]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return `${folder}/${clean || "image"}`;
-}
 
 export default function ImageUploadField({
   folder,
@@ -24,8 +13,8 @@ export default function ImageUploadField({
   onChange,
   onUploadingChange,
 }: {
-  // Blob folder; must be allowed in app/api/upload/route.ts.
-  folder: "product-images" | "site-images";
+  // Cloudinary folder; must be allowed in app/api/upload/route.ts.
+  folder: UploadFolder;
   label: string;
   hint: string;
   value: string;
@@ -48,16 +37,10 @@ export default function ImageUploadField({
     onUploadingChange(true);
     try {
       const file = await prepareImageForUpload(original);
-      const blob = await upload(uploadPathname(folder, file), file, {
-        access: "public",
-        handleUploadUrl: "/api/upload",
-        multipart: file.size > 5 * 1024 * 1024,
-        onUploadProgress: ({ percentage }) => setProgress(Math.round(percentage)),
-      });
-      onChange(blob.url);
+      onChange(await uploadImage(file, folder, setProgress));
     } catch (err) {
       setError(
-        err instanceof ImagePreparationError
+        err instanceof ImagePreparationError || err instanceof UploadError
           ? err.message
           : "Échec du téléversement. Vérifiez votre connexion et réessayez."
       );

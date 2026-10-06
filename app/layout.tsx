@@ -20,7 +20,7 @@ const sans = Source_Code_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "Simon Céramique — Atelier",
+  title: "Simon Barraud — Céramiste",
   description: "Pièces uniques façonnées à la main, en grès et porcelaine.",
 };
 

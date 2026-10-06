@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createKeyword, getKeywords } from "@/lib/keywords";
+import { storageUnavailable } from "@/lib/json-store";
 import { isValidSession, SESSION_COOKIE } from "@/lib/session";
 
 // Public: the shop page's keyword filter needs to read the list too.
 export async function GET() {
-  const keywords = await getKeywords();
-  return NextResponse.json({ keywords });
+  try {
+    return NextResponse.json({ keywords: await getKeywords() });
+  } catch (error) {
+    return storageUnavailable(error);
+  }
 }
 
 export async function POST(request: NextRequest) {

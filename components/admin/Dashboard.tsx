@@ -9,10 +9,12 @@ import type { Keyword } from "@/lib/keywords";
 import type { ShopSettings } from "@/lib/shop-settings";
 import type { HomeBackground } from "@/lib/home-background";
 import type { LegalPage } from "@/lib/site-content";
+import type { ProcessSection } from "@/lib/process-section";
 import { formatEuros } from "@/lib/format";
 import HomeBackgroundEditor from "./HomeBackgroundEditor";
 import KeywordManager from "./KeywordManager";
 import LegalPageEditor from "./LegalPageEditor";
+import ProcessSectionEditor from "./ProcessSectionEditor";
 import ProductForm, { EMPTY_PRODUCT_FORM, type ProductFormValues } from "./ProductForm";
 import ProductRow from "./ProductRow";
 import ShopSettingsManager from "./ShopSettingsManager";
@@ -39,11 +41,13 @@ export default function Dashboard({
   initialShopSettings,
   initialHomeBackground,
   initialLegalPage,
+  initialProcessSection,
 }: {
   initialProducts: Product[];
   initialShopSettings: ShopSettings;
   initialHomeBackground: HomeBackground;
   initialLegalPage: LegalPage;
+  initialProcessSection: ProcessSection;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("pieces");
@@ -63,6 +67,7 @@ export default function Dashboard({
 
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [keywordsLoading, setKeywordsLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   // The server saves products as a read-modify-write of the whole catalogue,
   // so two requests in flight at once could overwrite each other. Chaining
@@ -83,26 +88,19 @@ export default function Dashboard({
     syncTabFromHash();
     window.addEventListener("hashchange", syncTabFromHash);
 
-    fetch("/api/orders")
-      .then((res) => res.json())
-      .then(({ orders }: { orders: Order[] }) => {
-        setOrders(orders ?? []);
-        setOrdersLoading(false);
-      });
-
-    fetch("/api/contact")
-      .then((res) => res.json())
-      .then(({ messages }: { messages: ContactMessage[] }) => {
-        setMessages(messages ?? []);
-        setMessagesLoading(false);
-      });
-
-    fetch("/api/keywords")
-      .then((res) => res.json())
-      .then(({ keywords }: { keywords: Keyword[] }) => {
-        setKeywords(keywords ?? []);
-        setKeywordsLoading(false);
-      });
+    // A failed load must not look like "nothing yet": flag it for the banner.
+    function load<T>(url: string, field: string, set: (items: T[]) => void, done: () => void) {
+      fetch(url)
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`${url}: ${res.status}`);
+          set(((await res.json()) as Record<string, T[]>)[field] ?? []);
+        })
+        .catch(() => setLoadFailed(true))
+        .finally(done);
+    }
+    load<Order>("/api/orders", "orders", setOrders, () => setOrdersLoading(false));
+    load<ContactMessage>("/api/contact", "messages", setMessages, () => setMessagesLoading(false));
+    load<Keyword>("/api/keywords", "keywords", setKeywords, () => setKeywordsLoading(false));
 
     return () => window.removeEventListener("hashchange", syncTabFromHash);
   }, []);
@@ -303,6 +301,16 @@ export default function Dashboard({
       </header>
 
       <main className="grid-container py-8 md:py-12">
+        {loadFailed ? (
+          <p
+            role="alert"
+            className="mb-8 rounded border border-red-700/30 bg-red-50 p-4 text-sm text-red-800"
+          >
+            Une partie des données n&rsquo;a pas pu être chargée (commandes, messages ou
+            mots-clés) : le stockage ne répond pas. Ce qui s&rsquo;affiche peut être incomplet —
+            réessayez plus tard avant de modifier quoi que ce soit.
+          </p>
+        ) : null}
         {/* Tabs stay mounted (just hidden) so their state survives switching. */}
         <div className={`grid-matrix items-start ${tab === "pieces" ? "" : "hidden"}`}>
             {/* Phones: the form opens from a button so the list isn't buried
@@ -464,8 +472,9 @@ export default function Dashboard({
           </div>
 
         <div className={`grid-matrix items-start ${tab === "site" ? "" : "hidden"}`}>
-          <div className="md:col-span-6">
+          <div className="flex flex-col gap-4 md:col-span-6 md:gap-8">
             <HomeBackgroundEditor initialBackground={initialHomeBackground} />
+            <ProcessSectionEditor initialSection={initialProcessSection} />
           </div>
           <div className="mt-4 md:col-start-7 md:col-span-6 md:mt-0">
             <LegalPageEditor initialPage={initialLegalPage} />

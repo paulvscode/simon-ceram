@@ -6,7 +6,7 @@ import { getLegalPage } from "@/lib/site-content";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Mentions légales — Simon Céramique",
+  title: "Mentions légales — Simon Barraud",
 };
 
 export default async function LegalPage() {

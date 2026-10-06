@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createContactMessage, getContactMessages } from "@/lib/contactMessages";
+import { storageUnavailable } from "@/lib/json-store";
 import { isValidSession, SESSION_COOKIE } from "@/lib/session";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,6 +30,9 @@ export async function GET() {
     return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
   }
 
-  const messages = await getContactMessages();
-  return NextResponse.json({ messages });
+  try {
+    return NextResponse.json({ messages: await getContactMessages() });
+  } catch (error) {
+    return storageUnavailable(error);
+  }
 }

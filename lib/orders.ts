@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { list, put } from "@vercel/blob";
+import { readDocument, updateDocument } from "@/lib/json-store";
 
 export type OrderItem = {
   productId: string;
@@ -24,33 +24,14 @@ export type Order = {
   createdAt: number;
 };
 
-const BLOB_PATHNAME = "orders.json";
-
-async function findBlobUrl(): Promise<string | null> {
-  const { blobs } = await list({ prefix: BLOB_PATHNAME, limit: 1 });
-  return blobs.find((b) => b.pathname === BLOB_PATHNAME)?.url ?? null;
-}
-
-async function writeAll(orders: Order[]): Promise<void> {
-  await put(BLOB_PATHNAME, JSON.stringify(orders, null, 2), {
-    access: "public",
-    contentType: "application/json",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    cacheControlMaxAge: 0,
-  });
-}
-
+// Cached read; changes are fresh read-modify-writes (see lib/json-store.ts).
 async function readAll(): Promise<Order[]> {
-  const url = await findBlobUrl();
-  if (!url) return [];
-  const res = await fetch(url, { cache: "no-store" });
-  return (await res.json()) as Order[];
+  return (await readDocument<Order[]>("orders")) ?? [];
 }
 
 export async function getOrders(): Promise<Order[]> {
   const orders = await readAll();
-  return orders.sort((a, b) => b.createdAt - a.createdAt);
+  return [...orders].sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export async function findOrderBySessionId(
@@ -63,24 +44,23 @@ export async function findOrderBySessionId(
 export type NewOrder = Omit<Order, "id" | "createdAt">;
 
 // Idempotent on stripeSessionId — Stripe may redeliver the same webhook event.
+// A redelivery returns the stored order without writing anything.
 export async function createOrder(input: NewOrder): Promise<Order> {
-  const orders = await readAll();
-  const existing = orders.find((o) => o.stripeSessionId === input.stripeSessionId);
-  if (existing) return existing;
-
-  const order: Order = {
-    ...input,
-    id: randomUUID(),
-    createdAt: Date.now(),
-  };
-  orders.push(order);
-  await writeAll(orders);
-  return order;
+  let result!: Order;
+  await updateDocument<Order[]>("orders", [], (orders) => {
+    const existing = orders.find((o) => o.stripeSessionId === input.stripeSessionId);
+    if (existing) {
+      result = existing;
+      return orders;
+    }
+    result = { ...input, id: randomUUID(), createdAt: Date.now() };
+    return [...orders, result];
+  });
+  return result;
 }
 
 export async function markOrderShipped(id: string): Promise<void> {
-  const orders = await readAll();
-  await writeAll(
+  await updateDocument<Order[]>("orders", [], (orders) =>
     orders.map((o) => (o.id === id ? { ...o, status: "shipped" as const } : o))
   );
 }
