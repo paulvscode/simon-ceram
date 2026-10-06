@@ -18,15 +18,43 @@ export default function ProductImages({
   imageUrl,
   hoverImageUrl,
   sold,
+  layout = "card",
 }: {
   title: string;
   imageUrl: string;
   hoverImageUrl: string;
   sold: boolean;
+  // "page" (the piece's own page): on hover-capable devices every photo is
+  // shown, stacked, instead of the cross-fade; touch devices keep the gallery.
+  layout?: "card" | "page";
 }) {
   const [index, setIndex] = useState(0);
   const tone = sold ? "grayscale" : "";
   const photos = [imageUrl, hoverImageUrl].filter(Boolean).map(productImageUrl);
+
+  if (layout === "page" && photos.length > 1) {
+    return (
+      <>
+        <div className="hidden flex-col gap-8 [@media(hover:hover)]:flex">
+          {photos.map((src, i) => (
+            <div key={src} className="relative aspect-square w-full overflow-hidden bg-well">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={i === 0 ? title : `${title} — photo ${i + 1}`}
+                loading={i === 0 ? "eager" : "lazy"}
+                className={`block h-full w-full object-contain ${tone}`}
+              />
+              {sold && i === 0 ? <SoldBadge /> : null}
+            </div>
+          ))}
+        </div>
+        <div className="[@media(hover:hover)]:hidden">
+          <ProductImages title={title} imageUrl={imageUrl} hoverImageUrl={hoverImageUrl} sold={sold} />
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className="group relative aspect-square w-full overflow-hidden bg-well">
@@ -91,11 +119,15 @@ export default function ProductImages({
         </>
       ) : null}
 
-      {sold ? (
-        <span className="absolute left-4 top-4 bg-canvas px-2 font-sans leading-6 text-[11px] uppercase tracking-widest text-ink">
-          Vendu
-        </span>
-      ) : null}
+      {sold ? <SoldBadge /> : null}
     </div>
+  );
+}
+
+function SoldBadge() {
+  return (
+    <span className="absolute left-4 top-4 bg-canvas px-2 font-sans leading-6 text-[11px] uppercase tracking-widest text-ink">
+      Vendu
+    </span>
   );
 }

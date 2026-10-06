@@ -36,8 +36,13 @@ export async function POST(request: NextRequest) {
     hoverImageUrl: fields.hoverImageUrl ?? "",
     priceCents: fields.priceCents,
     collection: fields.collection ?? "",
-    showDescription: fields.showDescription ?? false,
+    showDescription: fields.showDescription ?? true,
     online: fields.online ?? true,
+    heightCm: fields.heightCm ?? null,
+    widthCm: fields.widthCm ?? null,
+    lengthCm: fields.lengthCm ?? null,
+    diameterCm: fields.diameterCm ?? null,
+    weightG: fields.weightG ?? null,
   });
 
   return NextResponse.json({ product }, { status: 201 });

@@ -124,6 +124,16 @@ export default function ProductRow({
             {details ? `${details} · ` : ""}
             {formatEuros(product.priceCents)}
           </p>
+          {product.online && product.slug ? (
+            <a
+              href={`/shop/${product.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-block text-sm text-ink underline underline-offset-4 hover:text-ink/70"
+            >
+              Voir la page ↗
+            </a>
+          ) : null}
 
         </div>
         </div>
@@ -157,7 +167,7 @@ export default function ProductRow({
                 disabled={saving}
                 onChange={onToggleDescription}
               />
-              Afficher la description sur le site
+              Afficher la description sur les cartes (boutique et accueil)
             </label>
             <p
               className={`mt-2 line-clamp-2 text-sm ${

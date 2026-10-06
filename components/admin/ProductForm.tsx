@@ -4,6 +4,7 @@ import { useState } from "react";
 import ImageUploadField from "./ImageUploadField";
 import { OnlineToggle } from "./ToggleRow";
 import type { Product } from "@/lib/products";
+import { DIMENSION_FIELDS } from "@/lib/product-details";
 import {
   checkboxClass,
   checkboxLabelClass,
@@ -21,6 +22,12 @@ export type ProductFormValues = {
   description: string;
   showDescription: boolean;
   online: boolean;
+  // Measures as typed ("24,5"); parsed and validated by the API.
+  heightCm: string;
+  widthCm: string;
+  lengthCm: string;
+  diameterCm: string;
+  weightG: string;
   imageUrl: string;
   hoverImageUrl: string;
   priceEuros: string;
@@ -31,13 +38,20 @@ export const EMPTY_PRODUCT_FORM: ProductFormValues = {
   title: "",
   subtitle: "",
   description: "",
-  showDescription: false,
+  showDescription: true,
   online: true,
+  heightCm: "",
+  widthCm: "",
+  lengthCm: "",
+  diameterCm: "",
+  weightG: "",
   imageUrl: "",
   hoverImageUrl: "",
   priceEuros: "",
   collection: "",
 };
+
+const measureText = (n: number | null) => (n === null ? "" : String(n).replace(".", ","));
 
 export function productToFormValues(product: Product): ProductFormValues {
   return {
@@ -46,6 +60,11 @@ export function productToFormValues(product: Product): ProductFormValues {
     description: product.description,
     showDescription: product.showDescription,
     online: product.online,
+    heightCm: measureText(product.heightCm),
+    widthCm: measureText(product.widthCm),
+    lengthCm: measureText(product.lengthCm),
+    diameterCm: measureText(product.diameterCm),
+    weightG: measureText(product.weightG),
     imageUrl: product.imageUrl,
     hoverImageUrl: product.hoverImageUrl,
     priceEuros: (product.priceCents / 100).toString().replace(".", ","),
@@ -163,8 +182,45 @@ export default function ProductForm({
           checked={form.showDescription}
           onChange={(e) => set("showDescription", e.target.checked)}
         />
-        Afficher la description sur le site
+        Afficher la description sur les cartes (boutique et accueil)
       </label>
+      <p className={`mt-2 ${hintClass}`}>Elle reste toujours visible sur la page de la pièce.</p>
+
+      <fieldset className="mt-4">
+        <legend className={labelClass}>Dimensions et poids (facultatif)</legend>
+        <p className={`mt-2 ${hintClass}`}>
+          Remplissez seulement ce qui s&rsquo;applique : un vase a une hauteur et un diamètre, un
+          plat un diamètre, un plateau une longueur et une largeur.
+        </p>
+        <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2">
+          {DIMENSION_FIELDS.map(({ key, label }) => (
+            <label key={key} className={labelClass}>
+              {label} (cm)
+              <input
+                type="text"
+                inputMode="decimal"
+                pattern="[0-9]+([.,][0-9])?"
+                title="Un nombre, par exemple 24 ou 24,5"
+                value={form[key]}
+                onChange={(e) => set(key, e.target.value)}
+                className={`mt-2 ${inputClass}`}
+              />
+            </label>
+          ))}
+          <label className={labelClass}>
+            Poids (g)
+            <input
+              type="text"
+              inputMode="decimal"
+              pattern="[0-9]+([.,][0-9])?"
+              title="Un nombre de grammes, par exemple 850"
+              value={form.weightG}
+              onChange={(e) => set("weightG", e.target.value)}
+              className={`mt-2 ${inputClass}`}
+            />
+          </label>
+        </div>
+      </fieldset>
 
       <ImageUploadField
         folder="product-images"

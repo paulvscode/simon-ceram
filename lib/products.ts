@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 import { readDocument, updateDocument } from "@/lib/json-store";
+import { DIMENSION_FIELDS, parseMeasure, slugify, type Measures } from "@/lib/product-details";
 
 export type Product = {
   id: string;
@@ -15,19 +16,49 @@ export type Product = {
   sold: boolean;
   collection: string;
   keywords: string[];
-  // Off by default: the description shows on the site only when enabled per piece.
+  // Description on the shop/homepage cards only; the piece's own page always
+  // shows it. New pieces start with it on.
   showDescription: boolean;
   // "En ligne" / "Hors ligne": offline pieces are hidden from every public
   // surface (homepage, shop, cart, checkout) but stay editable in the admin.
   online: boolean;
+  // Web address of the piece's page (/shop/<slug>). Set once from the title
+  // and kept even if the title changes, so shared links keep working.
+  slug: string;
   createdAt: number;
-};
+} & Measures; // heightCm, widthCm, lengthCm, diameterCm, weightG — null when not given
 
 const SEED_FILE = path.join(process.cwd(), "data", "products.json");
 
-// Fills defaults for records written before priceCents/sold/collection/keywords/showDescription/hoverImageUrl existed.
+const MEASURE_KEYS = [...DIMENSION_FIELDS.map((f) => f.key), "weightG"] as const;
+
+function measuresOf(p: Partial<Product>): Measures {
+  const out = {} as Measures;
+  for (const key of MEASURE_KEYS) {
+    const v = parseMeasure(p[key]);
+    out[key] = v === "invalid" ? null : v;
+  }
+  return out;
+}
+
+// Gives every piece without a slug a unique one, in stored order — which
+// never changes — so the result is stable from one read to the next. Slugs are
+// persisted with the next product save (mutateProducts writes normalized data).
+function assignSlugs(products: Product[]): Product[] {
+  const taken = new Set(products.map((p) => p.slug).filter(Boolean));
+  return products.map((p) => {
+    if (p.slug) return p;
+    const base = slugify(p.title);
+    let slug = base;
+    for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
+    taken.add(slug);
+    return { ...p, slug };
+  });
+}
+
+// Fills defaults for records written before later fields existed.
 function normalize(raw: Partial<Product>[]): Product[] {
-  return raw.map((p) => ({
+  return assignSlugs(raw.map((p) => ({
     id: p.id!,
     title: p.title ?? "",
     subtitle: p.subtitle ?? "",
@@ -41,8 +72,10 @@ function normalize(raw: Partial<Product>[]): Product[] {
     showDescription: p.showDescription ?? false,
     // Pieces created before the switch existed were all public.
     online: p.online ?? true,
+    slug: p.slug ?? "",
     createdAt: p.createdAt ?? Date.now(),
-  }));
+    ...measuresOf(p),
+  })));
 }
 
 async function loadSeed(): Promise<Partial<Product>[]> {
@@ -59,9 +92,20 @@ async function readAll(): Promise<Product[]> {
 }
 
 // Every change goes through one fresh read-modify-write, never the cache.
-// `change` returns null for "nothing to do", which skips the write.
-async function mutateProducts(change: (products: Product[]) => Product[] | null): Promise<void> {
-  await updateDocument<Partial<Product>[]>("products", await loadSeed(), (raw) => change(normalize(raw)) ?? raw);
+// `change` returns null for "nothing to do", which skips the write. The result
+// is normalized again before saving, so new pieces get their slug (and older
+// pieces get theirs persisted) as part of the same write.
+async function mutateProducts(change: (products: Product[]) => Product[] | null): Promise<Product[]> {
+  const saved = await updateDocument<Partial<Product>[]>("products", await loadSeed(), (raw) => {
+    const next = change(normalize(raw));
+    return next ? normalize(next) : raw;
+  });
+  return normalize(saved);
+}
+
+/** The public page's piece: online only (offline pieces 404). */
+export async function getPublicProductBySlug(slug: string): Promise<Product | null> {
+  return (await getPublicProducts()).find((p) => p.slug === slug) ?? null;
 }
 
 /** Only "en ligne" pieces: what visitors may see and buy. */
@@ -92,6 +136,7 @@ export type ProductFields = Pick<
   | "collection"
   | "showDescription"
   | "online"
+  | keyof Measures
 >;
 
 const TEXT_FIELDS = [
@@ -136,6 +181,13 @@ export function parseProductFields(
     fields.showDescription = body.showDescription;
   }
 
+  for (const key of MEASURE_KEYS) {
+    if (body[key] === undefined) continue;
+    const value = parseMeasure(body[key]);
+    if (value === "invalid") return { error: "Dimensions et poids : un nombre positif, par exemple 24 ou 24,5." };
+    fields[key] = value;
+  }
+
   if (body.online !== undefined) {
     if (typeof body.online !== "boolean") return { error: "Valeur « en ligne » invalide." };
     fields.online = body.online;
@@ -153,15 +205,12 @@ export function parseProductFields(
 }
 
 export async function addProduct(input: ProductFields): Promise<Product> {
-  const product: Product = {
-    id: randomUUID(),
-    ...input,
-    sold: false,
-    keywords: [],
-    createdAt: Date.now(),
-  };
-  await mutateProducts((products) => [...products, product]);
-  return product;
+  const id = randomUUID();
+  const saved = await mutateProducts((products) => [
+    ...products,
+    { id, ...input, sold: false, keywords: [], slug: "", createdAt: Date.now() },
+  ]);
+  return saved.find((p) => p.id === id)!;
 }
 
 export async function deleteProduct(id: string): Promise<void> {
