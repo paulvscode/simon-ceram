@@ -11,12 +11,14 @@ import type { HomeBackground } from "@/lib/home-background";
 import type { LegalPage } from "@/lib/site-content";
 import type { ProcessSection } from "@/lib/process-section";
 import type { HeroText } from "@/lib/hero-text";
+import type { PointDeVente } from "@/lib/points-de-vente";
 import { isVitrine } from "@/lib/vitrine";
 import { formatEuros } from "@/lib/format";
 import HeroTextEditor from "./HeroTextEditor";
 import HomeBackgroundEditor from "./HomeBackgroundEditor";
 import KeywordManager from "./KeywordManager";
 import LegalPageEditor from "./LegalPageEditor";
+import PointsDeVenteEditor from "./PointsDeVenteEditor";
 import ProcessSectionEditor from "./ProcessSectionEditor";
 import ProductForm, { EMPTY_PRODUCT_FORM, type ProductFormValues } from "./ProductForm";
 import ProductRow from "./ProductRow";
@@ -46,6 +48,7 @@ export default function Dashboard({
   initialLegalPage,
   initialProcessSection,
   initialHeroText,
+  initialPointsDeVente,
 }: {
   initialProducts: Product[];
   initialShopSettings: ShopSettings;
@@ -53,6 +56,7 @@ export default function Dashboard({
   initialLegalPage: LegalPage;
   initialProcessSection: ProcessSection;
   initialHeroText: HeroText;
+  initialPointsDeVente: PointDeVente[];
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("pieces");
@@ -170,7 +174,7 @@ export default function Dashboard({
     }
   }
 
-  // "Page d'accueil" = carries the permanent Vitrine keyword (lib/vitrine.ts),
+  // "Vitrine" toggle = carries the permanent Vitrine keyword (lib/vitrine.ts),
   // which the keywords API always returns.
   const vitrineKeyword = keywords.find(isVitrine);
 
@@ -498,7 +502,10 @@ export default function Dashboard({
             <ProcessSectionEditor initialSection={initialProcessSection} />
           </div>
           <div className="mt-4 md:col-start-7 md:col-span-6 md:mt-0">
-            <LegalPageEditor initialPage={initialLegalPage} />
+            <div className="flex flex-col gap-4 md:gap-8">
+              <PointsDeVenteEditor initialList={initialPointsDeVente} />
+              <LegalPageEditor initialPage={initialLegalPage} />
+            </div>
           </div>
         </div>
 

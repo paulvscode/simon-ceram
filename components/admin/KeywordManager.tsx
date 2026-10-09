@@ -62,7 +62,7 @@ export default function KeywordManager({
       <h2 className={sectionTitleClass}>Mots-clés</h2>
       <p className={`mt-2 ${hintClass}`}>
         Servent de filtres sur la page Shop. « Vitrine » est permanent : il place une pièce sur
-        la page d&rsquo;accueil, via le bouton « Page d&rsquo;accueil » de chaque pièce.
+        la page Vitrine, via le bouton « Vitrine » de chaque pièce.
       </p>
 
       <ul className="mt-4 flex flex-col divide-y divide-ink/10">

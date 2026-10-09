@@ -60,7 +60,7 @@ export default function HeroTextEditor({ initialHero }: { initialHero: HeroText 
           onChange={(e) => update({ quote: e.target.value })}
           maxLength={HERO_LIMITS.quote}
           rows={4}
-          className={`mt-2 ${inputClass} resize-y font-serif italic`}
+          className={`mt-2 ${inputClass} resize-y font-sans italic`}
         />
       </label>
       <p className={`mt-2 ${hintClass}`}>

@@ -75,7 +75,7 @@ export default async function ProductPage({ params }: Props) {
 
           <div className="mt-8 md:sticky md:top-8 md:col-start-9 md:col-span-4 md:mt-0 md:self-start">
             {product.subtitle ? <p className={labelClass}>{product.subtitle}</p> : null}
-            <h1 className="mt-4 font-serif text-3xl tracking-wide text-ink md:text-4xl">{product.title}</h1>
+            <h1 className="mt-4 font-sans text-3xl tracking-wide text-ink md:text-4xl">{product.title}</h1>
 
             <div className="mt-8">
               <ProductPurchase productId={product.id} priceCents={product.priceCents} sold={product.sold} />

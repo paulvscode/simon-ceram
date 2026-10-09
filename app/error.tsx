@@ -24,7 +24,7 @@ export default function ErrorPage({ reset }: { error: Error & { digest?: string 
           <p className="font-sans text-[11px] uppercase tracking-widest text-ink/50">
             Simon Barraud de Lagerie
           </p>
-          <h1 className="mt-8 font-serif text-3xl italic leading-snug tracking-wide text-ink md:text-4xl">
+          <h1 className="mt-8 font-sans text-3xl italic leading-snug tracking-wide text-ink md:text-4xl">
             Le site est momentanément indisponible.
           </h1>
           <p className="mt-8 font-sans text-sm leading-relaxed text-ink/70">

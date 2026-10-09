@@ -36,7 +36,7 @@ export default function ProductCard({
         />
       </a>
       <h3
-        className={`mt-8 font-serif text-2xl tracking-wide text-ink ${
+        className={`mt-8 font-sans text-2xl tracking-wide text-ink ${
           compact ? "max-sm:mt-4 max-sm:text-lg max-sm:leading-6" : ""
         }`}
       >
@@ -60,7 +60,7 @@ export default function ProductCard({
           compact ? "max-sm:mt-2 max-sm:flex-col max-sm:items-start max-sm:gap-2" : ""
         }`}
       >
-        <p className={`font-serif text-lg text-ink ${compact ? "max-sm:text-base" : ""}`}>
+        <p className={`font-sans text-lg text-ink ${compact ? "max-sm:text-base" : ""}`}>
           {formatEuros(product.priceCents)}
         </p>
         {!product.sold ? (

@@ -81,10 +81,10 @@ export default function ProductRow({
           onChange={onToggleFeatured}
           disabled={saving || featuredDisabled}
           tone="ink"
-          label="Afficher sur la page d’accueil"
-          onTitle="Page d’accueil"
-          offTitle="Pas sur la page d’accueil"
-          onHint={product.online ? "Dans la « Vitrine » de l’accueil" : "Apparaîtra sur l’accueil une fois en ligne"}
+          label="Afficher dans la Vitrine"
+          onTitle="Dans la Vitrine"
+          offTitle="Pas dans la Vitrine"
+          onHint={product.online ? "Visible sur la page Vitrine" : "Apparaîtra dans la Vitrine une fois en ligne"}
           offHint="Visible seulement dans la boutique"
         />
       </div>
@@ -167,7 +167,7 @@ export default function ProductRow({
                 disabled={saving}
                 onChange={onToggleDescription}
               />
-              Afficher la description sur les cartes (boutique et accueil)
+              Afficher la description sur les cartes (boutique et Vitrine)
             </label>
             <p
               className={`mt-2 line-clamp-2 text-sm ${

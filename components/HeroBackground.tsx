@@ -20,6 +20,9 @@ export default function HeroBackground({ background }: { background: HomeBackgro
         style={{ filter: homeBackgroundFilter(background) }}
       />
       <div className="absolute inset-0 bg-canvas" style={{ opacity: background.veil / 100 }} />
+      {/* Soft light fade behind the menu, so the logo and links read on any
+          image regardless of the admin's veil setting. */}
+      <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-canvas/90 via-canvas/60 to-transparent" />
     </div>
   );
 }

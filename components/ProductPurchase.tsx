@@ -18,7 +18,7 @@ export default function ProductPurchase({
 
   return (
     <div>
-      <p className="font-serif text-2xl text-ink">{formatEuros(priceCents)}</p>
+      <p className="font-sans text-2xl text-ink">{formatEuros(priceCents)}</p>
       {sold ? (
         <p className="mt-4 font-sans text-[11px] uppercase tracking-widest text-ink/50">
           Pièce vendue

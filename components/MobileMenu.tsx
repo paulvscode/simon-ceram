@@ -15,7 +15,7 @@ export default function MobileMenu() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Ouvrir le menu"
-        className="flex flex-col gap-2 p-2 md:hidden"
+        className="flex flex-col gap-2 p-2 xl:hidden"
       >
         <span className="block w-6 border-t border-ink" />
         <span className="block w-6 border-t border-ink" />
@@ -41,7 +41,7 @@ export default function MobileMenu() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="font-serif text-3xl tracking-wide text-ink"
+                className="font-sans text-3xl tracking-wide text-ink"
               >
                 {link.label}
               </a>

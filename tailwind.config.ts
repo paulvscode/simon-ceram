@@ -43,7 +43,6 @@ const config: Config = {
         well: "#F0F0EF",
       },
       fontFamily: {
-        serif: ["var(--font-serif)", ...defaultTheme.fontFamily.serif],
         sans: ["var(--font-sans)", ...defaultTheme.fontFamily.mono],
         mono: ["var(--font-sans)", ...defaultTheme.fontFamily.mono],
         // Plain system UI face for the admin: legibility over showcase styling.

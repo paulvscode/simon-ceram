@@ -11,7 +11,9 @@ export default function Nav() {
           <Logo />
         </a>
         <div className="flex items-center gap-8">
-          <ul className="hidden items-center gap-8 md:flex">
+          {/* Six spaced capitals beside the long wordmark need ~950px: below xl
+              (1280px) the burger menu takes over. */}
+          <ul className="hidden items-center gap-8 xl:flex">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <a

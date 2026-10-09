@@ -75,9 +75,9 @@ export default function ProcessSectionEditor({ initialSection }: { initialSectio
 
   return (
     <section className={cardClass}>
-      <h2 className={sectionTitleClass}>Section « processus » de l&rsquo;accueil</h2>
+      <h2 className={sectionTitleClass}>Page « Processus »</h2>
       <p className={`mt-2 ${hintClass}`}>
-        Affichée sur la page d&rsquo;accueil, sous le bouton vers la boutique. Racontez les
+        Le contenu de la page Processus (dans le menu du site). Racontez les
         étapes de votre travail : enfournement, allumage, cuisson…
       </p>
 
@@ -201,7 +201,7 @@ export default function ProcessSectionEditor({ initialSection }: { initialSectio
       {error ? <p className={`mt-4 ${errorClass}`}>{error}</p> : null}
       {justSaved ? (
         <p role="status" className="mt-4 text-sm text-green-800">
-          Enregistré. La page d&rsquo;accueil est à jour.
+          Enregistré. La page Processus est à jour.
         </p>
       ) : null}
 
@@ -234,7 +234,7 @@ export default function ProcessSectionEditor({ initialSection }: { initialSectio
         >
           Texte d&rsquo;exemple
         </button>
-        <a href="/#processus" target="_blank" rel="noreferrer" className={secondaryButtonClass}>
+        <a href="/processus" target="_blank" rel="noreferrer" className={secondaryButtonClass}>
           Voir sur le site ↗
         </a>
       </div>

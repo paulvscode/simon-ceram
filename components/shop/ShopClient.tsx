@@ -11,7 +11,7 @@ type Sort = "newest" | "price-asc" | "price-desc";
 
 const labelClass = "font-sans text-[11px] uppercase tracking-widest text-ink/50";
 const inputClass =
-  "mt-2 w-full border-0 border-b border-ink/20 bg-transparent py-2 font-serif text-base text-ink outline-none focus:border-ink";
+  "mt-2 w-full border-0 border-b border-ink/20 bg-transparent py-2 font-sans text-base text-ink outline-none focus:border-ink";
 
 export default function ShopClient({
   initialProducts,
@@ -70,7 +70,7 @@ export default function ShopClient({
     <section className="grid-container py-16 md:py-24">
       <div className="grid-matrix">
         <div className="md:col-span-12">
-          <h1 className="font-serif text-3xl tracking-wide">Shop</h1>
+          <h1 className="font-sans text-3xl tracking-wide">Shop</h1>
         </div>
       </div>
 

@@ -1,21 +1,15 @@
 import type { Metadata } from "next";
-import { Fraunces, Source_Code_Pro } from "next/font/google";
+import { Source_Code_Pro } from "next/font/google";
 import GridOverlay from "@/components/GridOverlay";
 import { CartProvider } from "@/lib/cart-context";
 import "./globals.css";
 
-const serif = Fraunces({
-  subsets: ["latin"],
-  // 600: the family name in the Logo wordmark.
-  weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-serif",
-  display: "swap",
-});
-
+// The site's single typeface (the admin keeps a system UI font). 600: the
+// family name in the Logo wordmark; italic: the homepage hero phrase.
 const sans = Source_Code_Pro({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
   variable: "--font-sans",
   display: "swap",
 });
@@ -27,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${serif.variable} ${sans.variable}`}>
+    <html lang="fr" className={sans.variable}>
       <body className="font-sans">
         <CartProvider>
           {children}

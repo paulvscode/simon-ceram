@@ -6,6 +6,7 @@ import {
 } from "@/lib/home-background";
 import { sanitizeLegalHtml } from "@/lib/legal-html";
 import { DEFAULT_HERO_TEXT, normalizeHeroText, type HeroText } from "@/lib/hero-text";
+import { normalizePointsDeVente, type PointDeVente } from "@/lib/points-de-vente";
 import {
   DEFAULT_PROCESS_SECTION,
   normalizeProcessSection,
@@ -82,4 +83,16 @@ export async function saveHeroText(input: unknown): Promise<HeroText> {
   const hero = normalizeHeroText(input);
   await writeDocument("hero", hero);
   return hero;
+}
+
+// ---- Points de vente ----
+
+export async function getPointsDeVente(): Promise<PointDeVente[]> {
+  return readOrDefault("points-de-vente", normalizePointsDeVente, []);
+}
+
+export async function savePointsDeVente(input: unknown): Promise<PointDeVente[]> {
+  const list = normalizePointsDeVente(input);
+  await writeDocument("points-de-vente", list);
+  return list;
 }

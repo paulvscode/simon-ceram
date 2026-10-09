@@ -19,7 +19,7 @@ export default async function LegalPage() {
       <section className="grid-container py-16 md:py-24">
         <div className="grid-matrix">
           <div className="md:col-span-12">
-            <h1 className="font-serif text-3xl tracking-wide">Mentions légales</h1>
+            <h1 className="font-sans text-3xl tracking-wide">Mentions légales</h1>
           </div>
         </div>
 
@@ -27,7 +27,7 @@ export default async function LegalPage() {
           <div className="md:col-span-8 lg:col-span-7">
             {html ? (
               <div
-                className="rich-text font-sans text-sm leading-relaxed text-ink/80 [&_h2]:font-serif [&_h2]:text-2xl [&_h2]:font-normal [&_h2]:tracking-wide [&_h3]:font-serif [&_h3]:text-lg [&_h3]:font-normal"
+                className="rich-text font-sans text-sm leading-relaxed text-ink/80 [&_h2]:font-sans [&_h2]:text-2xl [&_h2]:font-normal [&_h2]:tracking-wide [&_h3]:font-sans [&_h3]:text-lg [&_h3]:font-normal"
                 dangerouslySetInnerHTML={{ __html: html }}
               />
             ) : (

@@ -30,7 +30,7 @@ export default async function ConfirmationPage({
       <section className="grid-container py-24 md:py-48">
         <div className="grid-matrix">
           <div className="md:col-start-3 md:col-span-8 lg:col-start-4 lg:col-span-6">
-            <h1 className="font-serif text-3xl tracking-wide">Merci pour votre commande</h1>
+            <h1 className="font-sans text-3xl tracking-wide">Merci pour votre commande</h1>
             <p className="mt-8 font-sans text-sm leading-relaxed text-ink/70">
               {email
                 ? `Un e-mail de confirmation a été envoyé à ${email}.`
@@ -38,7 +38,7 @@ export default async function ConfirmationPage({
               L&rsquo;atelier prépare votre pièce avec soin avant expédition.
             </p>
             {total ? (
-              <p className="mt-8 font-serif text-xl">{formatEuros(total)}</p>
+              <p className="mt-8 font-sans text-xl">{formatEuros(total)}</p>
             ) : null}
             <a
               href="/"

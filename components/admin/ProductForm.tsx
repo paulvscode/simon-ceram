@@ -182,7 +182,7 @@ export default function ProductForm({
           checked={form.showDescription}
           onChange={(e) => set("showDescription", e.target.checked)}
         />
-        Afficher la description sur les cartes (boutique et accueil)
+        Afficher la description sur les cartes (boutique et Vitrine)
       </label>
       <p className={`mt-2 ${hintClass}`}>Elle reste toujours visible sur la page de la pièce.</p>
 

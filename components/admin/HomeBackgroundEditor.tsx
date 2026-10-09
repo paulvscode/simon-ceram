@@ -8,6 +8,7 @@ import {
   type HomeBackground,
 } from "@/lib/home-background";
 import ImageUploadField from "./ImageUploadField";
+import { HERO_PANEL_CLASS } from "@/components/Hero";
 import {
   cardClass,
   errorClass,
@@ -82,9 +83,11 @@ export default function HomeBackgroundEditor({
           />
         ) : null}
         <div className="absolute inset-0 bg-canvas" style={{ opacity: bg.veil / 100 }} />
-        <p className="relative p-4 font-serif text-xl italic leading-snug text-ink md:p-8 md:text-3xl">
-          {quote}
-        </p>
+        <div className="relative p-4 md:p-8">
+          <p className={`p-4 font-sans text-base italic leading-snug text-ink md:w-3/5 md:text-xl ${HERO_PANEL_CLASS}`}>
+            {quote}
+          </p>
+        </div>
       </div>
 
       <ImageUploadField

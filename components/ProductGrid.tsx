@@ -50,7 +50,7 @@ function LayoutButton({
   );
 }
 
-// Shared between /shop and the homepage's "Vitrine" section. Every picture
+// Shared between /shop and the /vitrine page. Every picture
 // is the same square (see lib/product-image.ts), so this is a regular grid
 // read row by row: on phones 1 or 2 per row (the visitor's choice), 2 from
 // `sm`, 3 from `lg`, fixed gutters per claude.MD §1.

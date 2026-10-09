@@ -11,7 +11,7 @@ export default function Logo() {
       {/* One line: 16px on phones (the full name is 263px; a 360px phone has
           272px beside the menu button), 20px from `sm`. Below 360px the family
           name drops cleanly onto its own line instead of breaking mid-name. */}
-      <span className="whitespace-nowrap font-serif text-base leading-6 text-ink sm:text-xl sm:leading-6">
+      <span className="whitespace-nowrap font-sans text-base leading-6 text-ink sm:text-xl sm:leading-6">
         Simon{" "}
         <span className="font-semibold uppercase tracking-[0.08em] max-[359px]:block">
           Barraud de Lagerie

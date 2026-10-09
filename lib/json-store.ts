@@ -22,7 +22,8 @@ export type DocumentKey =
   | "home-background"
   | "legal"
   | "process-section"
-  | "hero";
+  | "hero"
+  | "points-de-vente";
 
 // Thrown when storage is unreachable or misconfigured, instead of a cryptic
 // error further down. Pages and API routes turn it into a clear message.

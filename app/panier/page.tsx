@@ -58,7 +58,7 @@ export default function PanierPage() {
       <section className="grid-container py-16 md:py-24">
         <div className="grid-matrix">
           <div className="md:col-span-12">
-            <h1 className="font-serif text-3xl tracking-wide">Panier</h1>
+            <h1 className="font-sans text-3xl tracking-wide">Panier</h1>
           </div>
         </div>
 
@@ -89,11 +89,11 @@ export default function PanierPage() {
                     className="flex items-start justify-between gap-8 border-b border-ink/10 pb-8"
                   >
                     <div>
-                      <p className="font-serif text-xl">{product.title}</p>
+                      <p className="font-sans text-xl">{product.title}</p>
                       <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
                         {product.subtitle}
                       </p>
-                      <p className="mt-2 font-serif text-lg">
+                      <p className="mt-2 font-sans text-lg">
                         {formatEuros(product.priceCents)}
                       </p>
                     </div>
@@ -152,7 +152,7 @@ export default function PanierPage() {
                   <span>Livraison</span>
                   <span>{formatEuros(shippingCents)}</span>
                 </div>
-                <div className="mt-4 flex items-center justify-between font-serif text-xl">
+                <div className="mt-4 flex items-center justify-between font-sans text-xl">
                   <span>Total</span>
                   <span>{formatEuros(totalCents)}</span>
                 </div>

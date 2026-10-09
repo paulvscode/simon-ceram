@@ -34,7 +34,7 @@ export default function AtelierPage() {
           <p className="font-sans text-[11px] uppercase tracking-widest text-ink/50 md:col-span-12">
             Simon — céramiste, Dieulefit
           </p>
-          <h1 className="mt-8 font-serif text-3xl italic leading-snug tracking-wide text-ink md:col-span-8 md:text-4xl lg:text-5xl">
+          <h1 className="mt-8 font-sans text-3xl italic leading-snug tracking-wide text-ink md:col-span-8 md:text-4xl lg:text-5xl">
             La forme suit la lenteur. Rien ici ne se presse — ni la terre, ni le feu, ni la main.
           </h1>
         </div>
@@ -55,7 +55,7 @@ export default function AtelierPage() {
             <p className="font-sans text-[11px] uppercase tracking-widest text-ink/40 md:col-span-2">
               {section.number}
             </p>
-            <h2 className="mt-4 font-serif text-2xl tracking-wide text-ink md:col-start-3 md:col-span-3 md:mt-0">
+            <h2 className="mt-4 font-sans text-2xl tracking-wide text-ink md:col-start-3 md:col-span-3 md:mt-0">
               {section.title}
             </h2>
             <p className="mt-4 font-sans text-sm leading-relaxed text-ink/70 md:col-start-7 md:col-span-5 md:mt-0">
