@@ -1,0 +1,233 @@
+"use client";
+
+import { useState } from "react";
+import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
+import { useCart } from "@/lib/cart-context";
+import { useCartProducts } from "@/lib/use-cart-products";
+import { formatEuros } from "@/lib/format";
+import type { ShippingZone } from "@/lib/orders";
+
+const FRANCE_SHIPPING_CENTS = Number(
+  process.env.NEXT_PUBLIC_SHIPPING_RATE_FRANCE_CENTS ?? 0
+);
+const BELGIUM_SHIPPING_CENTS = Number(
+  process.env.NEXT_PUBLIC_SHIPPING_RATE_INTL_CENTS ?? 0
+);
+
+// Identifies this browser to the checkout across retries, so going back from
+// the payment page doesn't lock its own pieces (see lib/reservations.ts).
+function buyerToken(): string | undefined {
+  try {
+    let token = window.localStorage.getItem("checkout-buyer");
+    if (!token) {
+      token = crypto.randomUUID();
+      window.localStorage.setItem("checkout-buyer", token);
+    }
+    return token;
+  } catch {
+    return undefined;
+  }
+}
+
+export default function CartPage({
+  vatText,
+  shippingPolicy,
+}: {
+  // "TVA non applicable, art. 293 B du CGI" or "Prix TTC…" (Vente settings).
+  vatText: string;
+  shippingPolicy: string;
+}) {
+  const { removeFromCart } = useCart();
+  const { items, loading } = useCartProducts();
+  const [shippingZone, setShippingZone] = useState<ShippingZone>("FR");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  const unavailable = items.filter((p) => p.sold);
+  const available = items.filter((p) => !p.sold);
+  const itemsTotalCents = available.reduce((sum, p) => sum + p.priceCents, 0);
+  const shippingCents = shippingZone === "FR" ? FRANCE_SHIPPING_CENTS : BELGIUM_SHIPPING_CENTS;
+  const totalCents = itemsTotalCents + shippingCents;
+
+  async function handleCheckout() {
+    setSubmitting(true);
+    setError(null);
+
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        productIds: available.map((p) => p.id),
+        shippingZone,
+        buyerToken: buyerToken(),
+        acceptedTerms,
+      }),
+    });
+
+    const body = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setSubmitting(false);
+      setError(body.error ?? "Impossible de lancer le paiement.");
+      return;
+    }
+
+    window.location.href = body.url;
+  }
+
+  return (
+    <main>
+      <Nav />
+      <section className="grid-container py-16 md:py-24">
+        <div className="grid-matrix">
+          <div className="md:col-span-12">
+            <h1 className="font-sans text-3xl tracking-wide">Panier</h1>
+          </div>
+        </div>
+
+        {loading ? null : items.length === 0 ? (
+          <div className="grid-matrix mt-16">
+            <p className="font-sans text-[11px] uppercase tracking-widest text-ink/40 md:col-span-6">
+              Votre panier est vide.{" "}
+              <a href="/shop" className="underline underline-offset-4">
+                Voir les pièces
+              </a>
+            </p>
+          </div>
+        ) : (
+          <div className="grid-matrix mt-16">
+            <div className="md:col-span-7">
+              {unavailable.length > 0 ? (
+                <p className="mb-8 font-sans text-[11px] uppercase tracking-widest text-ink/60">
+                  {unavailable.length === 1
+                    ? "Une pièce de votre panier vient d'être vendue et a été retirée."
+                    : "Plusieurs pièces de votre panier viennent d'être vendues et ont été retirées."}
+                </p>
+              ) : null}
+
+              <ul className="flex flex-col gap-y-8">
+                {available.map((product) => (
+                  <li
+                    key={product.id}
+                    className="flex items-start justify-between gap-8 border-b border-ink/10 pb-8"
+                  >
+                    <div>
+                      <p className="font-sans text-xl">{product.title}</p>
+                      <p className="mt-2 font-sans text-[11px] uppercase tracking-widest text-ink/50">
+                        {product.subtitle}
+                      </p>
+                      <p className="mt-2 font-sans text-lg">
+                        {formatEuros(product.priceCents)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => removeFromCart(product.id)}
+                      className="shrink-0 font-sans text-[11px] uppercase tracking-widest text-ink/50 underline underline-offset-4 hover:text-ink"
+                    >
+                      Retirer
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-16 md:col-start-9 md:col-span-4 md:mt-0">
+              <p className="font-sans text-[11px] uppercase tracking-widest text-ink/50">
+                Livraison
+              </p>
+              <p className="mt-2 font-sans text-xs text-ink/50">
+                Nous livrons actuellement en France et en Belgique uniquement.
+              </p>
+              <div className="mt-4 flex flex-col gap-y-4">
+                <label className="flex items-center gap-4 font-sans text-sm">
+                  <input
+                    type="radio"
+                    className="accent-ink"
+                    checked={shippingZone === "FR"}
+                    onChange={() => setShippingZone("FR")}
+                  />
+                  France — {formatEuros(FRANCE_SHIPPING_CENTS)}
+                </label>
+                <label className="flex items-center gap-4 font-sans text-sm">
+                  <input
+                    type="radio"
+                    className="accent-ink"
+                    checked={shippingZone === "BE"}
+                    onChange={() => setShippingZone("BE")}
+                  />
+                  Belgique — {formatEuros(BELGIUM_SHIPPING_CENTS)}
+                </label>
+              </div>
+
+              <p className="mt-4 font-sans text-xs text-ink/50">
+                Livraison dans un autre pays ?{" "}
+                <a href="/contact" className="underline underline-offset-4 hover:text-ink">
+                  Contactez-nous
+                </a>
+              </p>
+
+              <div className="mt-8 border-t border-ink/10 pt-8">
+                <div className="flex items-center justify-between font-sans text-sm text-ink/70">
+                  <span>Sous-total</span>
+                  <span>{formatEuros(itemsTotalCents)}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between font-sans text-sm text-ink/70">
+                  <span>Livraison</span>
+                  <span>{formatEuros(shippingCents)}</span>
+                </div>
+                <div className="mt-4 flex items-center justify-between font-sans text-xl">
+                  <span>Total</span>
+                  <span>{formatEuros(totalCents)}</span>
+                </div>
+                <p className="mt-2 text-right font-sans text-xs text-ink/50">{vatText}</p>
+              </div>
+
+              {shippingPolicy ? (
+                <p className="mt-8 whitespace-pre-line font-sans text-xs leading-relaxed text-ink/60">
+                  {shippingPolicy}
+                </p>
+              ) : null}
+
+              <label className="mt-8 flex items-start gap-4 font-sans text-xs leading-relaxed text-ink/70">
+                <input
+                  type="checkbox"
+                  className="mt-[2px] h-4 w-4 shrink-0 accent-ink"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                />
+                <span>
+                  J&rsquo;ai lu et j&rsquo;accepte les{" "}
+                  <a
+                    href="/conditions-generales-de-vente"
+                    target="_blank"
+                    className="underline underline-offset-4 hover:text-ink"
+                  >
+                    conditions générales de vente
+                  </a>
+                  , dont le droit de rétractation de 14 jours.
+                </span>
+              </label>
+
+              {error ? (
+                <p className="mt-4 font-sans text-[11px] uppercase tracking-widest text-ink/60">
+                  {error}
+                </p>
+              ) : null}
+
+              <button
+                onClick={handleCheckout}
+                disabled={submitting || available.length === 0 || !acceptedTerms}
+                className="mt-8 font-sans text-[11px] uppercase tracking-widest text-ink underline underline-offset-4 disabled:text-ink/40"
+              >
+                {submitting ? "Redirection…" : "Passer à la commande"}
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+      <Footer />
+    </main>
+  );
+}

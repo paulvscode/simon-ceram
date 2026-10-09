@@ -27,7 +27,10 @@ export type DocumentKey =
   // Blog: an index of posts (metadata) + one key per post body, so a large
   // blog never hits Upstash's per-request size limit.
   | "blog"
-  | `blog-post:${string}`;
+  | `blog-post:${string}`
+  // Selling: seller identity, VAT, mediator, shipping policy; and the CGV page.
+  | "sale-settings"
+  | "cgv";
 
 // Thrown when storage is unreachable or misconfigured, instead of a cryptic
 // error further down. Pages and API routes turn it into a clear message.
@@ -133,4 +136,49 @@ export async function updateDocument<T>(
   if (next === current && data !== null) return next;
   await writeToStore(key, next);
   return next;
+}
+
+/*
+ * Short-lived keys for selling unique pieces, outside the cached documents:
+ * a checkout "hold" on a piece while its Stripe payment page is open, and a
+ * "sale claim" so that only one payment can ever win a piece. SET NX is
+ * atomic in Redis, which a read-modify-write of the products list is not.
+ */
+const kvKey = (name: string) => `site:kv:${name}`;
+
+async function kv<T>(run: (r: Redis) => Promise<T>): Promise<T> {
+  try {
+    return await run(redis());
+  } catch (error) {
+    if (error instanceof StorageError) throw error;
+    throw new StorageError(`Stockage inaccessible : ${error instanceof Error ? error.message : error}`);
+  }
+}
+
+/**
+ * Set `name` to `value` only if it's free. Returns who holds it afterwards
+ * and whether this call took it.
+ */
+export async function kvClaim(
+  name: string,
+  value: string,
+  ttlSeconds: number
+): Promise<{ owner: string | null; fresh: boolean }> {
+  return kv(async (r) => {
+    const set = await r.set(kvKey(name), value, { nx: true, ex: ttlSeconds });
+    if (set === "OK") return { owner: value, fresh: true };
+    return { owner: (await r.get<string>(kvKey(name))) ?? null, fresh: false };
+  });
+}
+
+export async function kvGet(name: string): Promise<string | null> {
+  return kv(async (r) => (await r.get<string>(kvKey(name))) ?? null);
+}
+
+export async function kvSet(name: string, value: string, ttlSeconds: number): Promise<void> {
+  await kv((r) => r.set(kvKey(name), value, { ex: ttlSeconds }));
+}
+
+export async function kvDelete(name: string): Promise<void> {
+  await kv((r) => r.del(kvKey(name)));
 }

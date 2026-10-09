@@ -8,10 +8,12 @@ export default function ProductPurchase({
   productId,
   priceCents,
   sold,
+  vatText,
 }: {
   productId: string;
   priceCents: number;
   sold: boolean;
+  vatText: string;
 }) {
   const { isInCart, addToCart, removeFromCart } = useCart();
   const inCart = isInCart(productId);
@@ -19,6 +21,7 @@ export default function ProductPurchase({
   return (
     <div>
       <p className="font-sans text-2xl text-ink">{formatEuros(priceCents)}</p>
+      <p className="mt-2 font-sans text-xs text-ink/50">{vatText}</p>
       {sold ? (
         <p className="mt-4 font-sans text-[11px] uppercase tracking-widest text-ink/50">
           Pièce vendue

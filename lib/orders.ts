@@ -20,7 +20,14 @@ export type Order = {
   customerEmail: string;
   customerName: string;
   shippingAddress: string;
-  status: "paid" | "shipped";
+  // "refunded": paid for a piece that was already gone (sold elsewhere or
+  // by another payment), refunded automatically — see lib/checkout-fulfil.ts.
+  status: "paid" | "shipped" | "refunded";
+  // "F2026-0001": consecutive per year, given only to paid orders (French
+  // invoices must be numbered without gaps).
+  invoiceNumber?: string;
+  // Why a refunded order was refunded (shown in the admin).
+  refundNote?: string;
   createdAt: number;
 };
 
@@ -41,7 +48,16 @@ export async function findOrderBySessionId(
   return orders.find((o) => o.stripeSessionId === stripeSessionId) ?? null;
 }
 
-export type NewOrder = Omit<Order, "id" | "createdAt">;
+export type NewOrder = Omit<Order, "id" | "createdAt" | "invoiceNumber">;
+
+function nextInvoiceNumber(orders: Order[], year: number): string {
+  const prefix = `F${year}-`;
+  const last = orders.reduce((max, o) => {
+    if (!o.invoiceNumber?.startsWith(prefix)) return max;
+    return Math.max(max, Number(o.invoiceNumber.slice(prefix.length)) || 0);
+  }, 0);
+  return `${prefix}${String(last + 1).padStart(4, "0")}`;
+}
 
 // Idempotent on stripeSessionId — Stripe may redeliver the same webhook event.
 // A redelivery returns the stored order without writing anything.
@@ -53,14 +69,25 @@ export async function createOrder(input: NewOrder): Promise<Order> {
       result = existing;
       return orders;
     }
-    result = { ...input, id: randomUUID(), createdAt: Date.now() };
+    const now = new Date();
+    result = {
+      ...input,
+      id: randomUUID(),
+      createdAt: now.getTime(),
+      // Numbered here, inside the same read-modify-write, so no gaps.
+      ...(input.status === "refunded" ? {} : { invoiceNumber: nextInvoiceNumber(orders, now.getFullYear()) }),
+    };
     return [...orders, result];
   });
   return result;
 }
 
+export async function getOrderById(id: string): Promise<Order | null> {
+  return (await readAll()).find((o) => o.id === id) ?? null;
+}
+
 export async function markOrderShipped(id: string): Promise<void> {
   await updateDocument<Order[]>("orders", [], (orders) =>
-    orders.map((o) => (o.id === id ? { ...o, status: "shipped" as const } : o))
+    orders.map((o) => (o.id === id && o.status === "paid" ? { ...o, status: "shipped" as const } : o))
   );
 }

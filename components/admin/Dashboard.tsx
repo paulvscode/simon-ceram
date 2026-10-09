@@ -17,6 +17,9 @@ import { isVitrine } from "@/lib/vitrine";
 import { formatEuros } from "@/lib/format";
 import HeroTextEditor from "./HeroTextEditor";
 import BlogManager from "./BlogManager";
+import SaleSettingsEditor from "./SaleSettingsEditor";
+import { CGV_TEMPLATE_HTML } from "@/lib/cgv-template";
+import type { SaleSettings } from "@/lib/sale-settings";
 import HomeBackgroundEditor from "./HomeBackgroundEditor";
 import KeywordManager from "./KeywordManager";
 import LegalPageEditor from "./LegalPageEditor";
@@ -38,8 +41,8 @@ import {
   sectionTitleClass,
 } from "./ui";
 
-type Tab = "pieces" | "commandes" | "messages" | "blog" | "site" | "reglages";
-const TABS: Tab[] = ["pieces", "commandes", "messages", "blog", "site", "reglages"];
+type Tab = "pieces" | "commandes" | "messages" | "blog" | "site" | "vente" | "reglages";
+const TABS: Tab[] = ["pieces", "commandes", "messages", "blog", "site", "vente", "reglages"];
 
 const shippingZoneLabel = (zone: Order["shippingZone"]) => (zone === "FR" ? "France" : "Belgique");
 
@@ -52,6 +55,10 @@ export default function Dashboard({
   initialHeroText,
   initialPointsDeVente,
   initialBlogPosts,
+  initialSaleSettings,
+  initialCgvPage,
+  stripeMode,
+  webhookConfigured,
 }: {
   initialProducts: Product[];
   initialShopSettings: ShopSettings;
@@ -61,6 +68,10 @@ export default function Dashboard({
   initialHeroText: HeroText;
   initialPointsDeVente: PointDeVente[];
   initialBlogPosts: BlogPostMeta[];
+  initialSaleSettings: SaleSettings;
+  initialCgvPage: LegalPage;
+  stripeMode: "live" | "test" | "none";
+  webhookConfigured: boolean;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("pieces");
@@ -262,6 +273,7 @@ export default function Dashboard({
 
   const pendingOrders = orders.filter((o) => o.status === "paid");
   const shippedOrders = orders.filter((o) => o.status === "shipped");
+  const refundedOrders = orders.filter((o) => o.status === "refunded");
 
   // Short names + a count badge, so all four tabs fit a 2×2 grid on phones.
   const tabs: Record<Tab, { name: string; count: number | null; alert?: boolean }> = {
@@ -274,6 +286,7 @@ export default function Dashboard({
     messages: { name: "Messages", count: messagesLoading ? null : messages.length },
     blog: { name: "Blog", count: null },
     site: { name: "Site", count: null },
+    vente: { name: "Vente", count: null },
     reglages: { name: "Réglages", count: null },
   };
 
@@ -433,13 +446,18 @@ export default function Dashboard({
                       <span className="font-medium">Adresse ({shippingZoneLabel(order.shippingZone)}) :</span>{" "}
                       {order.shippingAddress}
                     </p>
-                    <button
-                      onClick={() => handleMarkShipped(order.id)}
-                      disabled={shippingId === order.id}
-                      className={`mt-4 ${primaryButtonClass}`}
-                    >
-                      {shippingId === order.id ? "Enregistrement…" : "Marquer comme expédiée"}
-                    </button>
+                    <div className="mt-4 grid grid-cols-1 gap-2 sm:flex">
+                      <button
+                        onClick={() => handleMarkShipped(order.id)}
+                        disabled={shippingId === order.id}
+                        className={primaryButtonClass}
+                      >
+                        {shippingId === order.id ? "Enregistrement…" : "Marquer comme expédiée"}
+                      </button>
+                      <a href={`/admin/factures/${order.id}`} target="_blank" rel="noreferrer" className={secondaryButtonClass}>
+                        Facture {order.invoiceNumber ?? ""} ↗
+                      </a>
+                    </div>
                   </li>
                 ))}
                 {ordersLoading ? <li className={hintClass}>Chargement…</li> : null}
@@ -463,6 +481,14 @@ export default function Dashboard({
                       {shippingZoneLabel(order.shippingZone)}
                     </p>
                     <p className="mt-2 text-sm text-ink/70">{order.shippingAddress}</p>
+                    <a
+                      href={`/admin/factures/${order.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`mt-4 ${secondaryButtonClass}`}
+                    >
+                      Facture {order.invoiceNumber ?? ""} ↗
+                    </a>
                   </li>
                 ))}
                 {!ordersLoading && shippedOrders.length === 0 ? (
@@ -471,6 +497,30 @@ export default function Dashboard({
               </ul>
             </section>
           </div>
+
+        {refundedOrders.length > 0 ? (
+          <section className={`mt-8 ${tab === "commandes" ? "" : "hidden"}`}>
+            <h2 className={sectionTitleClass}>Remboursées automatiquement ({refundedOrders.length})</h2>
+            <p className={`mt-2 ${hintClass}`}>
+              Paiements reçus pour une pièce qui n&rsquo;était plus disponible : le client a été
+              remboursé intégralement par Stripe. Rien à faire.
+            </p>
+            <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              {refundedOrders.map((order) => (
+                <li key={order.id} className={cardClass}>
+                  <p className="text-base font-semibold text-ink">
+                    {order.items.map((i) => i.title).join(", ") || "—"}
+                  </p>
+                  <p className={`mt-2 ${hintClass}`}>
+                    {order.customerName || order.customerEmail} ·{" "}
+                    {new Date(order.createdAt).toLocaleDateString("fr-FR")} · {formatEuros(order.totalCents)}
+                  </p>
+                  {order.refundNote ? <p className="mt-2 text-sm text-ink">{order.refundNote}</p> : null}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <div className={`grid-matrix items-start ${tab === "messages" ? "" : "hidden"}`}>
             <section className="md:col-span-8">
@@ -523,6 +573,27 @@ export default function Dashboard({
               <PointsDeVenteEditor initialList={initialPointsDeVente} />
               <LegalPageEditor initialPage={initialLegalPage} />
             </div>
+          </div>
+        </div>
+
+        <div className={`grid-matrix items-start ${tab === "vente" ? "" : "hidden"}`}>
+          <div className="md:col-span-6">
+            <SaleSettingsEditor
+              initialSettings={initialSaleSettings}
+              stripeMode={stripeMode}
+              webhookConfigured={webhookConfigured}
+              cgvSaved={initialCgvPage.updatedAt !== null}
+            />
+          </div>
+          <div className="mt-4 md:col-start-7 md:col-span-6 md:mt-0">
+            <LegalPageEditor
+              initialPage={initialCgvPage}
+              title="Conditions générales de vente (CGV)"
+              apiPath="/api/site/cgv"
+              publicPath="/conditions-generales-de-vente"
+              template={CGV_TEMPLATE_HTML}
+              intro="Prix, commande, paiement, livraison, casse, droit de rétractation de 14 jours, garanties. Le vendeur, la TVA et le médiateur (carte « Vendeur » et suivantes) sont ajoutés automatiquement en bas de la page. Le panier demande d’accepter ces CGV avant de payer."
+            />
           </div>
         </div>
 

@@ -7,6 +7,7 @@ import {
 import { sanitizeLegalHtml } from "@/lib/legal-html";
 import { DEFAULT_HERO_TEXT, normalizeHeroText, type HeroText } from "@/lib/hero-text";
 import { normalizePointsDeVente, type PointDeVente } from "@/lib/points-de-vente";
+import { DEFAULT_SALE_SETTINGS, normalizeSaleSettings, type SaleSettings } from "@/lib/sale-settings";
 import {
   DEFAULT_PROCESS_SECTION,
   normalizeProcessSection,
@@ -58,6 +59,36 @@ export async function getLegalPage(): Promise<LegalPage> {
 export async function saveLegalPage(html: string): Promise<LegalPage> {
   const page = { html: sanitizeLegalHtml(html), updatedAt: Date.now() };
   await writeDocument("legal", page);
+  return page;
+}
+
+// ---- Selling: settings and CGV ----
+
+export async function getSaleSettings(): Promise<SaleSettings> {
+  return readOrDefault("sale-settings", normalizeSaleSettings, DEFAULT_SALE_SETTINGS);
+}
+
+export async function saveSaleSettings(input: unknown): Promise<SaleSettings> {
+  const settings = normalizeSaleSettings(input);
+  await writeDocument("sale-settings", settings);
+  return settings;
+}
+
+// Same shape and sanitizer as the legal page.
+export async function getCgvPage(): Promise<LegalPage> {
+  return readOrDefault<LegalPage>(
+    "cgv",
+    (stored) => {
+      const page = stored as Partial<LegalPage>;
+      return { html: sanitizeLegalHtml(page.html ?? ""), updatedAt: page.updatedAt ?? null };
+    },
+    { html: "", updatedAt: null }
+  );
+}
+
+export async function saveCgvPage(html: string): Promise<LegalPage> {
+  const page = { html: sanitizeLegalHtml(html), updatedAt: Date.now() };
+  await writeDocument("cgv", page);
   return page;
 }
 

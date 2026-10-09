@@ -8,7 +8,7 @@ const linkClass = "font-sans text-sm text-ink/80 transition-colors duration-400 
  * Compact site footer, two rows spanning the grid's outer edges
  * (first column's left edge to last column's right edge):
  *   logo                 ·  links in a line
- *   atelier details      ·  © and Mentions légales
+ *   atelier details      ·  ©, Mentions légales and CGV
  * Each row is a wrapping flex rather than fixed column slots: the long
  * wordmark doesn't fit a 4-column slot below ~1100px, so the right-hand part
  * drops under the left one only when the two don't fit side by side.
@@ -52,6 +52,9 @@ export default function Footer() {
             <p className={labelClass}>&copy; {new Date().getFullYear()} Simon Barraud de Lagerie</p>
             <a href="/mentions-legales" className={`${labelClass} transition-colors duration-400 hover:text-ink`}>
               Mentions légales
+            </a>
+            <a href="/conditions-generales-de-vente" className={`${labelClass} transition-colors duration-400 hover:text-ink`}>
+              CGV
             </a>
           </div>
         </div>

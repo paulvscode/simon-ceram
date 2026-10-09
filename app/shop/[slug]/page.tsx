@@ -7,6 +7,8 @@ import ProductPurchase from "@/components/ProductPurchase";
 import { getPublicProductBySlug, type Product } from "@/lib/products";
 import { measureRows } from "@/lib/product-details";
 import { productImageUrl } from "@/lib/product-image";
+import { getSaleSettings } from "@/lib/site-content";
+import { vatMention } from "@/lib/sale-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +35,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // One page per piece, generated from its data: nothing to create in the admin.
 // Offline pieces 404, like everywhere else on the public site.
 export default async function ProductPage({ params }: Props) {
-  const product = await getPublicProductBySlug((await params).slug);
+  const [product, saleSettings] = await Promise.all([
+    getPublicProductBySlug((await params).slug),
+    getSaleSettings(),
+  ]);
   if (!product) notFound();
 
   const rows = measureRows(product);
@@ -78,7 +83,12 @@ export default async function ProductPage({ params }: Props) {
             <h1 className="mt-4 font-sans text-3xl tracking-wide text-ink md:text-4xl">{product.title}</h1>
 
             <div className="mt-8">
-              <ProductPurchase productId={product.id} priceCents={product.priceCents} sold={product.sold} />
+              <ProductPurchase
+                productId={product.id}
+                priceCents={product.priceCents}
+                sold={product.sold}
+                vatText={vatMention(saleSettings)}
+              />
             </div>
 
             {/* Always shown here: "Afficher la description" only governs the cards. */}

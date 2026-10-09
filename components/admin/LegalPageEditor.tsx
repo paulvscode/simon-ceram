@@ -13,10 +13,25 @@ import {
   sectionTitleClass,
 } from "./ui";
 
-export default function LegalPageEditor({ initialPage }: { initialPage: LegalPage }) {
+// Rich-text page edited in the admin: Mentions légales (default) or CGV.
+export default function LegalPageEditor({
+  initialPage,
+  title = "Mentions légales",
+  apiPath = "/api/site/legal",
+  publicPath = "/mentions-legales",
+  template = LEGAL_TEMPLATE_HTML,
+  intro,
+}: {
+  initialPage: LegalPage;
+  title?: string;
+  apiPath?: string;
+  publicPath?: string;
+  template?: string;
+  intro?: string;
+}) {
   const [savedHtml, setSavedHtml] = useState(initialPage.html);
   const [html, setHtml] = useState(
-    initialPage.updatedAt === null ? LEGAL_TEMPLATE_HTML : initialPage.html
+    initialPage.updatedAt === null ? template : initialPage.html
   );
   const [updatedAt, setUpdatedAt] = useState(initialPage.updatedAt);
   const [saving, setSaving] = useState(false);
@@ -30,7 +45,7 @@ export default function LegalPageEditor({ initialPage }: { initialPage: LegalPag
     setSaving(true);
     setError(null);
     setJustSaved(false);
-    const res = await fetch("/api/site/legal", {
+    const res = await fetch(apiPath, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ html }),
@@ -48,7 +63,8 @@ export default function LegalPageEditor({ initialPage }: { initialPage: LegalPag
 
   return (
     <section className={cardClass}>
-      <h2 className={sectionTitleClass}>Mentions légales</h2>
+      <h2 className={sectionTitleClass}>{title}</h2>
+      {intro ? <p className={`mt-2 ${hintClass}`}>{intro}</p> : null}
       <p className={`mt-2 ${hintClass}`}>
         {updatedAt === null
           ? "Un modèle a été pré-rempli : complétez les passages [À compléter], puis enregistrez. La page reste vide sur le site tant qu’elle n’a pas été enregistrée."
@@ -80,7 +96,7 @@ export default function LegalPageEditor({ initialPage }: { initialPage: LegalPag
         >
           {saving ? "Enregistrement…" : dirty ? "Enregistrer" : "Aucune modification"}
         </button>
-        <a href="/mentions-legales" target="_blank" rel="noreferrer" className={secondaryButtonClass}>
+        <a href={publicPath} target="_blank" rel="noreferrer" className={secondaryButtonClass}>
           Voir la page ↗
         </a>
       </div>
