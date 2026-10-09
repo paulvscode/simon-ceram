@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Source_Code_Pro } from "next/font/google";
 import GridOverlay from "@/components/GridOverlay";
+import KilnEasterEgg from "@/components/KilnEasterEgg";
 import { CartProvider } from "@/lib/cart-context";
 import "./globals.css";
 
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CartProvider>
           {children}
           <GridOverlay />
+          <KilnEasterEgg />
         </CartProvider>
       </body>
     </html>

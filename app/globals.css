@@ -71,3 +71,15 @@
     display: none;
   }
 }
+
+/*
+ * Kiln easter egg (components/KilnEasterEgg.tsx): while firing, the page
+ * content warms with the firing curve (--cuisson, 0 → 1 → 0). On `main`, not
+ * `body`: a filter turns its element into the containing block of fixed
+ * descendants, which would make the flame overlay and the homepage's fixed
+ * hero image scroll with the page.
+ */
+html.cuisson main {
+  filter: sepia(calc(var(--cuisson, 0) * 0.45)) saturate(calc(1 + var(--cuisson, 0) * 0.6))
+    hue-rotate(calc(var(--cuisson, 0) * -12deg));
+}
