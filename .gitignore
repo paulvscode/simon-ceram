@@ -9,3 +9,10 @@ next-env.d.ts
 .vercel
 .env*
 *.tsbuildinfo
+
+# Throwaway local test scripts (never part of the site)
+/.chk.mjs
+/.reset.mjs
+/.cld-test.*
+/.sig-test.*
+/.t.mts
