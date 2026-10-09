@@ -32,10 +32,15 @@ export default async function HomePage() {
         <Hero hero={hero} />
 
         {/* Pieces switched on with the admin's "Vitrine" toggle (online only).
-            Opaque bg-canvas so it covers the fixed hero image while scrolling;
-            nothing at all when no piece is selected. */}
+            Its light background covers the fixed hero image while scrolling,
+            as opaque as the admin sets it; nothing when no piece is selected. */}
         {featured.length > 0 ? (
-          <section id="vitrine" className="grid-container bg-canvas py-16 md:py-24">
+          <section
+            id="vitrine"
+            className="grid-container py-16 md:py-24"
+            // Canvas (#FBFBFA) at the admin's "Opacité du fond de la Vitrine".
+            style={{ backgroundColor: `rgb(251 251 250 / ${background.vitrineOpacity / 100})` }}
+          >
             <div className="grid-matrix">
               <h2 className="font-sans text-3xl tracking-wide md:col-span-12">Vitrine</h2>
             </div>

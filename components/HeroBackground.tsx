@@ -17,7 +17,7 @@ export default function HeroBackground({ background }: { background: HomeBackgro
         src={background.imageUrl}
         alt=""
         className="h-full w-full object-cover"
-        style={{ filter: homeBackgroundFilter(background) }}
+        style={{ filter: homeBackgroundFilter(background), opacity: background.imageOpacity / 100 }}
       />
       <div className="absolute inset-0 bg-canvas" style={{ opacity: background.veil / 100 }} />
       {/* Soft light fade behind the menu, so the logo and links read on any

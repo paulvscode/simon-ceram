@@ -498,7 +498,13 @@ export default function Dashboard({
         <div className={`grid-matrix items-start ${tab === "site" ? "" : "hidden"}`}>
           <div className="flex flex-col gap-4 md:col-span-6 md:gap-8">
             <HeroTextEditor initialHero={initialHeroText} />
-            <HomeBackgroundEditor initialBackground={initialHomeBackground} quote={initialHeroText.quote} />
+            <HomeBackgroundEditor
+              initialBackground={initialHomeBackground}
+              hero={initialHeroText}
+              vitrineProducts={products.filter(
+                (p) => p.online && !!vitrineKeyword && p.keywords.includes(vitrineKeyword.id)
+              )}
+            />
             <ProcessSectionEditor initialSection={initialProcessSection} />
           </div>
           <div className="mt-4 md:col-start-7 md:col-span-6 md:mt-0">

@@ -58,7 +58,9 @@ export default function ProductGrid({ products }: { products: Product[] }) {
   const [phoneColumns, setPhoneColumns] = useState<PhoneColumns>(1);
 
   // After mount only: the server can't know the stored choice.
-  useEffect(() => setPhoneColumns(readChoice()), []);
+  useEffect(() => {
+    setPhoneColumns(readChoice());
+  }, []);
 
   function choose(columns: PhoneColumns) {
     setPhoneColumns(columns);

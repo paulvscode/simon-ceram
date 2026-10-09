@@ -11,6 +11,17 @@ export const HERO_SIZES = [
   { id: "xl", label: "Très grande" },
 ] as const;
 export type HeroSize = (typeof HERO_SIZES)[number]["id"];
+
+// Same sizes in px [phone, tablet, desktop], for the admin's scaled homepage
+// preview (which can't rely on the real viewport's breakpoints). Must match
+// HERO_SIZE_CLASSES in components/Hero.tsx.
+export const HERO_SIZE_PX: Record<HeroSize, [number, number, number]> = {
+  xs: [18, 20, 24],
+  s: [20, 24, 30],
+  m: [24, 30, 36],
+  l: [30, 36, 48],
+  xl: [36, 48, 60],
+};
 export const DEFAULT_HERO_SIZE: HeroSize = "s";
 
 export type HeroText = {
