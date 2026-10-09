@@ -19,8 +19,8 @@ const chipClass = "font-sans text-[11px] uppercase tracking-widest underline-off
 // Articles written in the admin (Blog tab), newest first. Keywords double as
 // filters (?tag=…). Each article is collapsed (miniature, date, title,
 // excerpt) and opens in place — a native <details>, so it works without JS.
-// On the 12-column grid: miniature 2 columns, text 8, toggle 2; the opened
-// text lines up under the title.
+// On the 12-column grid: a small miniature (1 column), text 9, toggle 2; the
+// opened text lines up under the title.
 export default async function BlogPage({ searchParams }: Props) {
   const { tag } = await searchParams;
   const posts = await getPublishedPostsWithBody();
@@ -64,18 +64,18 @@ export default async function BlogPage({ searchParams }: Props) {
         {shown.length > 0 ? (
           <ul className="mt-16 border-b border-ink/20">
             {shown.map((p) => {
-              const thumb = postThumbnail(p);
+              const thumb = postThumbnail(p, 160);
               return (
                 <li key={p.id} id={p.slug} className="border-t border-ink/20">
                   <details className="group">
                     <summary className="flex cursor-pointer list-none gap-4 py-8 md:grid md:grid-cols-12 md:gap-8 [&::-webkit-details-marker]:hidden">
-                      <div className="aspect-square w-24 shrink-0 self-start overflow-hidden bg-well md:col-span-2 md:w-full">
+                      <div className="aspect-square w-16 shrink-0 self-start overflow-hidden bg-well md:col-span-1 md:w-full">
                         {thumb ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={thumb} alt="" loading="lazy" className="h-full w-full object-cover" />
                         ) : null}
                       </div>
-                      <div className="min-w-0 flex-1 md:col-span-8">
+                      <div className="min-w-0 flex-1 md:col-span-9">
                         <p className={labelClass}>
                           <time dateTime={p.date}>{formatPostDate(p.date)}</time>
                         </p>
@@ -101,10 +101,10 @@ export default async function BlogPage({ searchParams }: Props) {
                     <div className="pb-16 md:grid md:grid-cols-12 md:gap-8">
                       {/* Sanitized in lib/blog.ts (lib/blog-html.ts) when read. */}
                       <div
-                        className="rich-text font-sans text-base leading-relaxed text-ink/80 md:col-span-8 md:col-start-3"
+                        className="rich-text font-sans text-base leading-relaxed text-ink/80 md:col-span-8 md:col-start-2"
                         dangerouslySetInnerHTML={{ __html: p.html }}
                       />
-                      <p className="mt-8 md:col-span-8 md:col-start-3">
+                      <p className="mt-8 md:col-span-8 md:col-start-2">
                         <a href={`/blog/${p.slug}`} className={`${chipClass} text-ink/50 hover:text-ink`}>
                           Lien vers cet article ↗
                         </a>

@@ -5,7 +5,6 @@ import type { BlogPostMeta } from "@/lib/blog";
 import { formatPostDate, postThumbnail, todayIso } from "@/lib/blog-format";
 import ImageUploadField from "./ImageUploadField";
 import RichTextEditor from "./RichTextEditor";
-import ToggleRow from "./ToggleRow";
 import {
   cardClass,
   dangerButtonClass,
@@ -52,6 +51,19 @@ function StatusBadge({ published }: { published: boolean }) {
   );
 }
 
+// Right-hand "Statut" column of the list: online or not, at a glance.
+function StatusCell({ published }: { published: boolean }) {
+  return (
+    <div className="flex w-32 shrink-0 flex-col items-end text-right">
+      <span className={`flex items-center gap-2 text-sm font-semibold ${published ? "text-green-800" : "text-ink/60"}`}>
+        <span aria-hidden="true" className={`h-2 w-2 rounded-full ${published ? "bg-green-600" : "bg-ink/30"}`} />
+        {published ? "En ligne" : "Brouillon"}
+      </span>
+      <span className="text-xs text-ink/50">{published ? "Visible sur le site" : "Non visible"}</span>
+    </div>
+  );
+}
+
 function Miniature({ url }: { url: string }) {
   return (
     <div className="h-16 w-16 shrink-0 overflow-hidden rounded bg-ink/10">
@@ -74,6 +86,7 @@ export default function BlogManager({ initialPosts }: { initialPosts: BlogPostMe
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState(false);
+  const [toggling, setToggling] = useState<string | null>(null);
   // Remounts the rich text editor with the right content when switching posts.
   const [editorKey, setEditorKey] = useState(0);
 
@@ -125,14 +138,16 @@ export default function BlogManager({ initialPosts }: { initialPosts: BlogPostMe
     setEditing(null);
   }
 
-  async function handleSave() {
+  // Saves the form; `published` is the status the post should end up with
+  // (the Publier / brouillon buttons below).
+  async function handleSave(published: boolean) {
     if (!editing) return;
     setSaving(true);
     setError(null);
     const res = await fetch(editing.id ? `/api/blog/${editing.id}` : "/api/blog", {
       method: editing.id ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, tags: splitTags(form.tags) }),
+      body: JSON.stringify({ ...form, published, tags: splitTags(form.tags) }),
     });
     setSaving(false);
     const body = await res.json().catch(() => ({}));
@@ -147,10 +162,32 @@ export default function BlogManager({ initialPosts }: { initialPosts: BlogPostMe
       )
     );
     setEditing({ id: meta.id, slug: meta.slug });
-    const normalized = { ...form, tags: meta.tags.join(", "), excerpt: form.excerpt };
+    const normalized = { ...form, published: meta.published, tags: meta.tags.join(", ") };
     setForm(normalized);
     setSavedForm(normalized);
     setJustSaved(true);
+  }
+
+  // From the list: flip Publié / Brouillon without opening the editor.
+  async function togglePublished(meta: BlogPostMeta) {
+    setToggling(meta.id);
+    setError(null);
+    const current = await fetch(`/api/blog/${meta.id}`);
+    const post = current.ok ? (await current.json()).post : null;
+    const res = post
+      ? await fetch(`/api/blog/${meta.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...post, published: !meta.published }),
+        })
+      : null;
+    setToggling(null);
+    if (!res?.ok) {
+      setError("Le changement de statut a échoué. Réessayez.");
+      return;
+    }
+    const updated = (await res.json()).post as BlogPostMeta;
+    setPosts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
   }
 
   async function handleDelete(meta: { id: string; title: string }) {
@@ -180,35 +217,41 @@ export default function BlogManager({ initialPosts }: { initialPosts: BlogPostMe
         </p>
         {error ? <p className={`mt-4 ${errorClass}`}>{error}</p> : null}
 
-        <ul className="mt-4 flex flex-col divide-y divide-ink/10">
+        {posts.length > 0 ? (
+          <div className="mt-4 flex justify-between gap-4 border-b border-ink/10 pb-2 text-xs font-medium uppercase tracking-wide text-ink/50">
+            <span>Article</span>
+            <span className="w-32 text-right">Statut</span>
+          </div>
+        ) : null}
+        <ul className="flex flex-col divide-y divide-ink/10">
           {posts.map((p) => (
-            <li key={p.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex min-w-0 gap-4">
+            <li key={p.id} className="flex flex-col gap-4 py-4">
+              <div className="flex items-start gap-4">
                 <Miniature url={postThumbnail(p, 160)} />
-                <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="min-w-0 flex-1">
                   <p className="break-words text-base font-semibold text-ink">{p.title}</p>
-                  <StatusBadge published={p.published} />
+                  <p className={hintClass}>
+                    {formatPostDate(p.date)}
+                    {p.tags.length ? ` · ${p.tags.join(", ")}` : ""}
+                  </p>
                 </div>
-                <p className={hintClass}>
-                  {formatPostDate(p.date)}
-                  {p.tags.length ? ` · ${p.tags.join(", ")}` : ""}
-                </p>
-                </div>
+                <StatusCell published={p.published} />
               </div>
-              <div className="flex shrink-0 gap-2">
-                <button onClick={() => openExisting(p)} className={`flex-1 sm:flex-none ${secondaryButtonClass}`}>
+              <div className="grid grid-cols-2 gap-2 sm:flex">
+                <button
+                  onClick={() => togglePublished(p)}
+                  disabled={toggling === p.id}
+                  className={p.published ? secondaryButtonClass : primaryButtonClass}
+                >
+                  {toggling === p.id ? "…" : p.published ? "Dépublier" : "Publier"}
+                </button>
+                <button onClick={() => openExisting(p)} className={secondaryButtonClass}>
                   Modifier
                 </button>
-                <a
-                  href={`/blog/${p.slug}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`flex-1 sm:flex-none ${secondaryButtonClass}`}
-                >
+                <a href={`/blog/${p.slug}`} target="_blank" rel="noreferrer" className={secondaryButtonClass}>
                   {p.published ? "Voir ↗" : "Aperçu ↗"}
                 </a>
-                <button onClick={() => handleDelete(p)} className={`flex-1 sm:flex-none ${dangerButtonClass}`}>
+                <button onClick={() => handleDelete(p)} className={dangerButtonClass}>
                   Supprimer
                 </button>
               </div>
@@ -222,6 +265,7 @@ export default function BlogManager({ initialPosts }: { initialPosts: BlogPostMe
 
   // ---- Editor ----
   const tags = splitTags(form.tags);
+  const busy = saving || uploading || !form.title.trim();
   return (
     <section className={cardClass}>
       <button onClick={backToList} className="text-sm text-ink underline underline-offset-4 hover:text-ink/70">
@@ -246,31 +290,15 @@ export default function BlogManager({ initialPosts }: { initialPosts: BlogPostMe
             />
           </label>
 
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className={labelClass}>
-              Date de publication
-              <input
-                type="date"
-                value={form.date}
-                onChange={(e) => set("date", e.target.value)}
-                className={`mt-2 ${inputClass}`}
-              />
-            </label>
-            <div>
-              <p className={labelClass}>Statut</p>
-              <div className="mt-2">
-                <ToggleRow
-                  checked={form.published}
-                  onChange={(published) => set("published", published)}
-                  label="Publié sur le site"
-                  onTitle="Publié"
-                  offTitle="Brouillon"
-                  onHint="Visible sur la page Blog"
-                  offHint="Visible seulement par vous"
-                />
-              </div>
-            </div>
-          </div>
+          <label className={`mt-4 block sm:w-1/2 ${labelClass}`}>
+            Date de publication
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) => set("date", e.target.value)}
+              className={`mt-2 ${inputClass}`}
+            />
+          </label>
 
           <label className={`mt-4 ${labelClass}`}>
             Mots-clés
@@ -339,13 +367,33 @@ export default function BlogManager({ initialPosts }: { initialPosts: BlogPostMe
           ) : null}
 
           <div className="mt-8 grid grid-cols-1 gap-2 sm:flex">
-            <button
-              onClick={handleSave}
-              disabled={saving || uploading || !form.title.trim() || (!dirty && !!editing.id)}
-              className={primaryButtonClass}
-            >
-              {uploading ? "Téléversement en cours…" : saving ? "Enregistrement…" : dirty || !editing.id ? "Enregistrer" : "Aucune modification"}
-            </button>
+            {savedForm.published && editing.id ? (
+              <>
+                <button
+                  onClick={() => handleSave(true)}
+                  disabled={busy || !dirty}
+                  className={primaryButtonClass}
+                >
+                  {uploading ? "Téléversement en cours…" : saving ? "Enregistrement…" : dirty ? "Enregistrer" : "Aucune modification"}
+                </button>
+                <button onClick={() => handleSave(false)} disabled={busy} className={secondaryButtonClass}>
+                  Repasser en brouillon
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => handleSave(true)} disabled={busy} className={primaryButtonClass}>
+                  {uploading ? "Téléversement en cours…" : saving ? "Enregistrement…" : "Publier"}
+                </button>
+                <button
+                  onClick={() => handleSave(false)}
+                  disabled={busy || (!dirty && !!editing.id)}
+                  className={secondaryButtonClass}
+                >
+                  Enregistrer le brouillon
+                </button>
+              </>
+            )}
             {editing.slug ? (
               <a href={`/blog/${editing.slug}`} target="_blank" rel="noreferrer" className={secondaryButtonClass}>
                 {savedForm.published ? "Voir l’article ↗" : "Aperçu ↗"}

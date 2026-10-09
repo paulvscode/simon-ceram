@@ -41,6 +41,7 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await findPost((await params).slug);
   if (!post) notFound();
 
+  const thumb = postThumbnail(post, 160);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -67,10 +68,21 @@ export default async function BlogPostPage({ params }: Props) {
             <a href="/blog" className={linkClass}>
               ← Retour au blog
             </a>
-            <p className={`mt-8 ${labelClass}`}>
-              <time dateTime={post.date}>{formatPostDate(post.date)}</time>
-            </p>
-            <h1 className="mt-4 font-sans text-3xl leading-snug tracking-wide md:text-4xl">{post.title}</h1>
+            <div className="mt-8 flex items-start gap-4 md:gap-8">
+              {thumb ? (
+                // Small miniature beside the title (one grid column wide on desktop).
+                <div className="aspect-square w-16 shrink-0 overflow-hidden bg-well md:w-20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={thumb} alt="" className="h-full w-full object-cover" />
+                </div>
+              ) : null}
+              <div className="min-w-0">
+                <p className={labelClass}>
+                  <time dateTime={post.date}>{formatPostDate(post.date)}</time>
+                </p>
+                <h1 className="mt-4 font-sans text-3xl leading-snug tracking-wide md:text-4xl">{post.title}</h1>
+              </div>
+            </div>
             {post.tags.length ? (
               <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
                 {post.tags.map((t) => (

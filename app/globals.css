@@ -75,7 +75,7 @@
   }
   .rich-text img {
     --cols: 6;
-    @apply my-8 h-auto bg-well;
+    @apply my-8 h-auto bg-well first:mt-0;
     width: calc((100% - 7 * var(--g)) / 8 * var(--cols) + (var(--cols) - 1) * var(--g));
     max-width: 100%;
   }
