@@ -1,5 +1,5 @@
 /**
- * Call-to-action into the full catalog, placed on the /vitrine page after the
+ * Call-to-action into the full catalog, placed on the homepage after the
  * Vitrine grid. 3 / 6 / 3 column split per claude.MD §1.
  */
 export default function ShopCta() {

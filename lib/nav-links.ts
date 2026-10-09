@@ -1,5 +1,4 @@
 export const NAV_LINKS = [
-  { label: "Vitrine", href: "/vitrine" },
   { label: "Shop", href: "/shop" },
   { label: "Processus", href: "/processus" },
   { label: "Atelier", href: "/atelier" },

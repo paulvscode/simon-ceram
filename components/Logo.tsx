@@ -8,10 +8,10 @@
 export default function Logo() {
   return (
     <span className="flex flex-col">
-      {/* One line: 16px on phones (the full name is 263px; a 360px phone has
-          272px beside the menu button), 20px from `sm`. Below 360px the family
-          name drops cleanly onto its own line instead of breaking mid-name. */}
-      <span className="whitespace-nowrap font-sans text-base leading-6 text-ink sm:text-xl sm:leading-6">
+      {/* One line: 15px on phones (the full name is ~237px; a 360px phone
+          has ~250px beside the cart badge and menu button), 20px from `sm`.
+          Below 360px the family name drops cleanly onto its own line. */}
+      <span className="whitespace-nowrap font-sans text-[15px] leading-6 text-ink sm:text-xl sm:leading-6">
         Simon{" "}
         <span className="font-semibold uppercase tracking-[0.08em] max-[359px]:block">
           Barraud de Lagerie

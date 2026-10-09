@@ -84,7 +84,7 @@ export default function ProductRow({
           label="Afficher dans la Vitrine"
           onTitle="Dans la Vitrine"
           offTitle="Pas dans la Vitrine"
-          onHint={product.online ? "Visible sur la page Vitrine" : "Apparaîtra dans la Vitrine une fois en ligne"}
+          onHint={product.online ? "Visible sur la page d’accueil" : "Apparaîtra dans la Vitrine une fois en ligne"}
           offHint="Visible seulement dans la boutique"
         />
       </div>
@@ -167,7 +167,7 @@ export default function ProductRow({
                 disabled={saving}
                 onChange={onToggleDescription}
               />
-              Afficher la description sur les cartes (boutique et Vitrine)
+              Afficher la description sur les cartes (boutique et accueil)
             </label>
             <p
               className={`mt-2 line-clamp-2 text-sm ${

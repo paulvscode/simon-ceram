@@ -1,4 +1,4 @@
-// "Vitrine": the permanent keyword behind the /vitrine page and the admin's
+// "Vitrine": the permanent keyword behind the homepage's Vitrine and the admin's
 // "Vitrine" toggle on each piece; also a regular filter in the shop.
 // It always exists (see withVitrine in lib/keywords.ts) and can't be renamed
 // or deleted. "Selected Works" — its former name — is recognised as the same

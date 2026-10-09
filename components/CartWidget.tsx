@@ -3,6 +3,7 @@
 import { useCart } from "@/lib/cart-context";
 import { useCartProducts } from "@/lib/use-cart-products";
 import { formatEuros } from "@/lib/format";
+import { navLinkClass } from "./NavLinks";
 
 export default function CartWidget() {
   const { cart, removeFromCart, isDrawerOpen, openDrawer, closeDrawer } = useCart();
@@ -17,11 +18,18 @@ export default function CartWidget() {
   return (
     <>
       {count > 0 ? (
-        <button
-          onClick={openDrawer}
-          className="font-sans text-[11px] uppercase tracking-widest text-ink/70 transition-colors duration-400 hover:text-ink"
-        >
-          Panier ({count})
+        <button onClick={openDrawer} aria-label={`Panier (${count})`} className={`flex items-center ${navLinkClass}`}>
+          {/* Phones: a count badge — "PANIER (n)" doesn't fit beside the long
+              wordmark and the menu button. From sm, the full label. */}
+          <span
+            aria-hidden="true"
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-ink text-canvas sm:hidden"
+          >
+            {count}
+          </span>
+          <span aria-hidden="true" className="hidden sm:inline">
+            Panier ({count})
+          </span>
         </button>
       ) : null}
 

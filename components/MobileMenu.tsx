@@ -15,10 +15,19 @@ export default function MobileMenu() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Ouvrir le menu"
-        className="flex flex-col gap-2 p-2 xl:hidden"
+        className="flex items-center gap-2 p-2 xl:hidden"
       >
-        <span className="block w-6 border-t border-ink" />
-        <span className="block w-6 border-t border-ink" />
+        {/* The label needs room the long wordmark doesn't leave on phones. */}
+        <span
+          aria-hidden="true"
+          className="hidden font-sans text-xs font-medium uppercase tracking-widest text-ink sm:inline"
+        >
+          Menu
+        </span>
+        <span aria-hidden="true" className="flex flex-col gap-2">
+          <span className="block w-6 border-t-2 border-ink" />
+          <span className="block w-6 border-t-2 border-ink" />
+        </span>
       </button>
 
       {open ? (
