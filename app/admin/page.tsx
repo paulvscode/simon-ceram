@@ -1,6 +1,7 @@
 import Dashboard from "@/components/admin/Dashboard";
 import { getProducts } from "@/lib/products";
 import { getShopSettings } from "@/lib/shop-settings";
+import { getAllPosts } from "@/lib/blog";
 import {
   getHeroText,
   getHomeBackground,
@@ -12,7 +13,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [products, shopSettings, homeBackground, legalPage, processSection, heroText, pointsDeVente] = await Promise.all([
+  const [products, shopSettings, homeBackground, legalPage, processSection, heroText, pointsDeVente, blogPosts] = await Promise.all([
     getProducts(),
     getShopSettings(),
     getHomeBackground(),
@@ -20,6 +21,7 @@ export default async function AdminPage() {
     getProcessSection(),
     getHeroText(),
     getPointsDeVente(),
+    getAllPosts(),
   ]);
   return (
     <Dashboard
@@ -30,6 +32,7 @@ export default async function AdminPage() {
       initialProcessSection={processSection}
       initialHeroText={heroText}
       initialPointsDeVente={pointsDeVente}
+      initialBlogPosts={blogPosts}
     />
   );
 }

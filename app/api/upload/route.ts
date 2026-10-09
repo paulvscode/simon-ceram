@@ -6,7 +6,7 @@ import { isValidSession, SESSION_COOKIE } from "@/lib/session";
 // Signed browser uploads: the admin's browser sends the photo straight to
 // Cloudinary (no 4.5 MB serverless body cap); this route only signs the
 // request — and only for the logged-in admin, into an allowed folder.
-const UPLOAD_FOLDERS = ["product-images", "site-images"];
+const UPLOAD_FOLDERS = ["product-images", "site-images", "blog-images"];
 
 export async function POST(request: NextRequest) {
   const session = (await cookies()).get(SESSION_COOKIE)?.value;

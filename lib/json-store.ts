@@ -23,7 +23,11 @@ export type DocumentKey =
   | "legal"
   | "process-section"
   | "hero"
-  | "points-de-vente";
+  | "points-de-vente"
+  // Blog: an index of posts (metadata) + one key per post body, so a large
+  // blog never hits Upstash's per-request size limit.
+  | "blog"
+  | `blog-post:${string}`;
 
 // Thrown when storage is unreachable or misconfigured, instead of a cryptic
 // error further down. Pages and API routes turn it into a clear message.
@@ -94,6 +98,17 @@ async function writeToStore(key: DocumentKey, data: unknown): Promise<void> {
   }
   // Expire immediately (not stale-while-revalidate): the admin expects to see
   // their save on the very next request.
+  revalidateTag(tagFor(key), { expire: 0 });
+}
+
+/** Remove a document (e.g. a deleted blog post's body). */
+export async function deleteDocument(key: DocumentKey): Promise<void> {
+  try {
+    await redis().del(redisKey(key));
+  } catch (error) {
+    if (error instanceof StorageError) throw error;
+    throw new StorageError(`Suppression impossible : ${error instanceof Error ? error.message : error}`);
+  }
   revalidateTag(tagFor(key), { expire: 0 });
 }
 

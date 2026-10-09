@@ -105,7 +105,7 @@ export default function HomepagePreview({
                 </span>
                 {desktop ? (
                   <span className="uppercase tracking-widest" style={{ fontSize: 12 }}>
-                    Shop&nbsp;&nbsp;&nbsp;Processus&nbsp;&nbsp;&nbsp;Atelier&nbsp;&nbsp;&nbsp;Points de vente&nbsp;&nbsp;&nbsp;Contact
+                    Shop&nbsp;&nbsp;&nbsp;Processus&nbsp;&nbsp;&nbsp;Atelier&nbsp;&nbsp;&nbsp;Points de vente&nbsp;&nbsp;&nbsp;Blog&nbsp;&nbsp;&nbsp;Contact
                   </span>
                 ) : (
                   <span className="flex flex-col gap-2" aria-hidden="true">

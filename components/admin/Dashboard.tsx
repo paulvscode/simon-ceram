@@ -12,9 +12,11 @@ import type { LegalPage } from "@/lib/site-content";
 import type { ProcessSection } from "@/lib/process-section";
 import type { HeroText } from "@/lib/hero-text";
 import type { PointDeVente } from "@/lib/points-de-vente";
+import type { BlogPostMeta } from "@/lib/blog";
 import { isVitrine } from "@/lib/vitrine";
 import { formatEuros } from "@/lib/format";
 import HeroTextEditor from "./HeroTextEditor";
+import BlogManager from "./BlogManager";
 import HomeBackgroundEditor from "./HomeBackgroundEditor";
 import KeywordManager from "./KeywordManager";
 import LegalPageEditor from "./LegalPageEditor";
@@ -36,8 +38,8 @@ import {
   sectionTitleClass,
 } from "./ui";
 
-type Tab = "pieces" | "commandes" | "messages" | "site" | "reglages";
-const TABS: Tab[] = ["pieces", "commandes", "messages", "site", "reglages"];
+type Tab = "pieces" | "commandes" | "messages" | "blog" | "site" | "reglages";
+const TABS: Tab[] = ["pieces", "commandes", "messages", "blog", "site", "reglages"];
 
 const shippingZoneLabel = (zone: Order["shippingZone"]) => (zone === "FR" ? "France" : "Belgique");
 
@@ -49,6 +51,7 @@ export default function Dashboard({
   initialProcessSection,
   initialHeroText,
   initialPointsDeVente,
+  initialBlogPosts,
 }: {
   initialProducts: Product[];
   initialShopSettings: ShopSettings;
@@ -57,6 +60,7 @@ export default function Dashboard({
   initialProcessSection: ProcessSection;
   initialHeroText: HeroText;
   initialPointsDeVente: PointDeVente[];
+  initialBlogPosts: BlogPostMeta[];
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("pieces");
@@ -268,6 +272,7 @@ export default function Dashboard({
       alert: pendingOrders.length > 0,
     },
     messages: { name: "Messages", count: messagesLoading ? null : messages.length },
+    blog: { name: "Blog", count: null },
     site: { name: "Site", count: null },
     reglages: { name: "Réglages", count: null },
   };
@@ -295,7 +300,7 @@ export default function Dashboard({
                 key={t}
                 onClick={() => selectTab(t)}
                 aria-current={active ? "page" : undefined}
-                className={`flex items-center justify-center gap-2 rounded px-4 py-2 text-sm font-medium transition-colors last:col-span-2 ${
+                className={`flex items-center justify-center gap-2 rounded px-4 py-2 text-sm font-medium transition-colors [&:last-child:nth-child(odd)]:col-span-2 ${
                   active ? "bg-ink text-canvas" : "bg-ink/5 text-ink/70 hover:text-ink sm:bg-transparent sm:hover:bg-ink/5"
                 }`}
               >
@@ -494,6 +499,12 @@ export default function Dashboard({
               </ul>
             </section>
           </div>
+
+        <div className={`grid-matrix items-start ${tab === "blog" ? "" : "hidden"}`}>
+          <div className="md:col-span-12 lg:col-span-10">
+            <BlogManager initialPosts={initialBlogPosts} />
+          </div>
+        </div>
 
         <div className={`grid-matrix items-start ${tab === "site" ? "" : "hidden"}`}>
           <div className="flex flex-col gap-4 md:col-span-6 md:gap-8">

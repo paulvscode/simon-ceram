@@ -60,6 +60,47 @@
   .rich-text blockquote {
     @apply border-l-2 border-ink/20 pl-4 italic;
   }
+  /*
+   * Blog images. Their width snaps to whole columns of the 8-column text
+   * span (--g = the grid gutter): small / medium / large = 3 / 5 / 8 columns
+   * on desktop, 4 / 6 / 8 on phones. Left-aligned on the text's edge.
+   */
+  .rich-text {
+    --g: 16px;
+  }
+  @media (min-width: 768px) {
+    .rich-text {
+      --g: 32px;
+    }
+  }
+  .rich-text img {
+    --cols: 6;
+    @apply my-8 h-auto bg-well;
+    width: calc((100% - 7 * var(--g)) / 8 * var(--cols) + (var(--cols) - 1) * var(--g));
+    max-width: 100%;
+  }
+  .rich-text img[data-size="small"] {
+    --cols: 4;
+  }
+  .rich-text img[data-size="large"] {
+    --cols: 8;
+  }
+  @media (min-width: 768px) {
+    .rich-text img {
+      --cols: 5;
+    }
+    .rich-text img[data-size="small"] {
+      --cols: 3;
+    }
+    .rich-text img[data-size="large"] {
+      --cols: 8;
+    }
+  }
+  /* Editor: show which image the size buttons apply to. */
+  .rich-text img.ProseMirror-selectednode {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+  }
 }
 
 @layer utilities {

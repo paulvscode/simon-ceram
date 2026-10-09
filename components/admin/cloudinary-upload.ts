@@ -1,6 +1,6 @@
 // Browser side of signed Cloudinary uploads (server side: app/api/upload).
 
-export type UploadFolder = "product-images" | "site-images";
+export type UploadFolder = "product-images" | "site-images" | "blog-images";
 
 // Thrown for problems the admin can act on; its message is shown as-is.
 export class UploadError extends Error {}
