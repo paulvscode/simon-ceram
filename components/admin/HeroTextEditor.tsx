@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { DEFAULT_HERO_TEXT, HERO_LIMITS, type HeroText } from "@/lib/hero-text";
+import { DEFAULT_HERO_TEXT, HERO_LIMITS, HERO_SIZES, type HeroText } from "@/lib/hero-text";
+import { HERO_PANEL_CLASS, HERO_SIZE_CLASSES } from "@/components/Hero";
 import {
   cardClass,
   errorClass,
@@ -20,7 +21,8 @@ export default function HeroTextEditor({ initialHero }: { initialHero: HeroText 
   const [error, setError] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState(false);
 
-  const dirty = hero.quote !== saved.quote || hero.signature !== saved.signature;
+  const dirty =
+    hero.quote !== saved.quote || hero.signature !== saved.signature || hero.size !== saved.size;
 
   function update(patch: Partial<HeroText>) {
     setHero((prev) => ({ ...prev, ...patch }));
@@ -77,6 +79,39 @@ export default function HeroTextEditor({ initialHero }: { initialHero: HeroText 
           placeholder={DEFAULT_HERO_TEXT.signature}
         />
       </label>
+
+      <fieldset className="mt-4">
+        <legend className={labelClass}>Taille du texte</legend>
+        <div role="radiogroup" aria-label="Taille du texte" className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {HERO_SIZES.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={hero.size === id}
+              onClick={() => update({ size: id })}
+              className={`rounded border px-2 py-2 text-sm font-medium transition-colors ${
+                hero.size === id ? "border-ink bg-ink text-canvas" : "border-ink/20 text-ink hover:border-ink"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className={`mt-2 ${hintClass}`}>
+          Le texte s&rsquo;adapte à l&rsquo;écran : plus petit sur téléphone, plus grand sur ordinateur.
+        </p>
+      </fieldset>
+
+      {/* Preview at the phone size of the chosen setting, on the site's panel. */}
+      <div className="mt-4 rounded border border-ink/10 bg-ink/20 p-4">
+        <p className={`${hintClass} text-ink/70`}>Aperçu (taille téléphone)</p>
+        <div className={`mt-2 p-4 ${HERO_PANEL_CLASS}`}>
+          <p className={`whitespace-pre-line font-sans italic leading-snug text-ink ${HERO_SIZE_CLASSES[hero.size].split(" ")[0]}`}>
+            {hero.quote}
+          </p>
+        </div>
+      </div>
 
       {error ? <p className={`mt-4 ${errorClass}`}>{error}</p> : null}
       {justSaved ? (
